@@ -18,9 +18,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-=_zu9k7bav0722o@gd5b&gd#+gj94!m@#wn$he5r@jb1#6ji9r'
 DEBUG = False
 ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
     ".onrender.com",
 ]
-
 
 # -------------------------------------------------
 # APPLICATIONS
@@ -157,12 +158,3 @@ MEDIA_ROOT = BASE_DIR / 'media'
  
 
 ASGI_APPLICATION = "GAMEDEX.asgi.application"
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
-        },
-    },
-}
