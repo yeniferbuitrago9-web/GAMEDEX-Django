@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Base de datos local
+db.sqlite3
+
+# Archivos estáticos generados
+staticfiles/
+
+# Archivos de respaldo
+datos.json
+
+# Variables de entorno
+.env
+
+# Archivos de VS Code
+.vscode/
+
+# Archivos del sistema
+.DS_Store

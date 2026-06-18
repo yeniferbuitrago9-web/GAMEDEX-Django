@@ -16,8 +16,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 # -------------------------------------------------
 SECRET_KEY = 'django-insecure-=_zu9k7bav0722o@gd5b&gd#+gj94!m@#wn$he5r@jb1#6ji9r'
-DEBUG = True
-ALLOWED_HOSTS = []
+DEBUG = False
+ALLOWED_HOSTS = [
+    ".onrender.com",
+]
 
 
 # -------------------------------------------------
@@ -129,6 +131,7 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # -------------------------------------------------
 # AUTH REDIRECTIONS
@@ -153,7 +156,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'     
  
 
-ASGI_APPLICATION = "proyecto.asgi.application"
+ASGI_APPLICATION = "GAMEDEX.asgi.application"
 
 CHANNEL_LAYERS = {
     "default": {
