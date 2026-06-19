@@ -62,7 +62,7 @@ urlpatterns = [
     path("descargar-factura/", views.descargar_factura_pdf, name="descargar_factura_pdf"),
 
     #editar perfil
-    path('editar-perfil/', views.editar_perfil_usuario, name='editar_perfil'),
+    path('editar-perfil/', views.editar_perfil_usuario, name='editar_perfil_usuario'),
     path('vendedor/editar-perfil/', views.editar_perfil_vendedor, name='editar_perfil_vendedor'),
 
 

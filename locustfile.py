@@ -1,20 +1,15 @@
 from locust import HttpUser, task, between
 
-class GameDexUser(HttpUser):
-    host = "https://gamedex-8uhb.onrender.com"
-    wait_time = between(1, 3)
-
-    @task(3)
-    def home(self):
-        self.client.get("/")
+class GamedexPublicUser(HttpUser):
+    # Tiempo de espera para que la base de datos en Render procese con calma
+    wait_time = between(2, 5)
 
     @task(2)
-    def productos(self):
-        self.client.get("/productos/")
+    def index_page(self):
+        # Prueba de carga en la página principal de Gamedex
+        self.client.get("/")
 
     @task(1)
-    def login(self):
-        self.client.post("/login/", {
-            "username": "test",
-            "password": "test"
-        })
+    def login_interface(self):
+        # Prueba de carga solicitando la interfaz visual del Login
+        self.client.get("/login/")
