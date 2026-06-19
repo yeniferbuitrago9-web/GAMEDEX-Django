@@ -169,10 +169,17 @@ def ver_carrito(request):
     carrito = request.session.get("carrito", {})
     productos_carrito = []
     total = 0
+    hubo_cambios = False
 
-    for producto_id, item in carrito.items():
+    for producto_id in list(carrito.keys()):
+        item = carrito[producto_id]
+        producto = Producto.objects.filter(id=producto_id).first()
 
-        producto = get_object_or_404(Producto, id=producto_id)
+        if not producto:
+            # El producto ya no existe (fue eliminado del catálogo), lo quitamos del carrito
+            del carrito[producto_id]
+            hubo_cambios = True
+            continue
 
         cantidad = item["cantidad"]
         precio = float(item["precio"])
@@ -185,6 +192,10 @@ def ver_carrito(request):
             "cantidad": cantidad,
             "subtotal": subtotal
         })
+
+    if hubo_cambios:
+        request.session["carrito"] = carrito
+        request.session.modified = True
 
     return render(request, "carrito.html", {
         "productos_carrito": productos_carrito,
