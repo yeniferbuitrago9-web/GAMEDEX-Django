@@ -373,14 +373,15 @@ def editar_perfil_usuario(request):
 
     return render(request, 'editar_perfil.html', {
         'user': user,
-        'perfil': perfil  # 👈 Enviado correctamente
+        'perfil': perfil,
+        'url_cancelar': 'dashboard_usuario' # 👈 Destino del botón cancelar
     })
 
 
 @login_required
 def editar_perfil_vendedor(request):
     user = request.user 
-    perfil = user.perfil  # 👈 Obtenemos el perfil aquí también
+    perfil = user.perfil # 👈 Traemos el perfil aquí obligatoriamente
 
     if request.method == 'POST':
         form = EditarPerfilForm(request.POST, instance=user)
@@ -396,7 +397,7 @@ def editar_perfil_vendedor(request):
             else:
                 user.save()
 
-            # 🔥 Guardamos los campos del perfil que vienen de tu HTML manual
+            # Guardamos los datos de los inputs del perfil
             perfil.telefono = request.POST.get('telefono')
             perfil.direccion = request.POST.get('direccion')
             perfil.save()
@@ -407,11 +408,11 @@ def editar_perfil_vendedor(request):
     else:
         form = EditarPerfilForm(instance=user)
 
-    # 🔥 Pasamos 'perfil' al contexto para que tus inputs manuales muestren los datos viejos
     return render(request, "editar_perfil.html", {
         "form": form,
         "user": user,
-        "perfil": perfil  # 👈 ¡ESTO es lo que le faltaba a la vista del vendedor!
+        "perfil": perfil, # 👈 Manda los datos del perfil al HTML manual
+        "url_cancelar": "dashboard_vendedor" # 👈 Destino del botón cancelar
     })
 
 # =====================================
