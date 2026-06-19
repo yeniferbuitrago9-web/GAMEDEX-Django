@@ -19,6 +19,9 @@ from xhtml2pdf import pisa
 from openpyxl import Workbook
 from .forms import ComunidadForm
 from django.views.decorators.csrf import csrf_exempt
+from django.template.loader import get_template
+from django.http import HttpResponse
+from django.contrib.auth import update_session_auth_hash
 
 
 
@@ -348,29 +351,25 @@ def descargar_factura_pdf(request):
 # =====================================
 # PERFIL
 # =====================================
-from django.contrib.auth import update_session_auth_hash # <-- 1. IMPORTA ESTO
 
-def editar_perfil(request):
+@login_required
+def editar_perfil_usuario(request): # 👈 Le cambiamos el nombre
     user = request.user
     perfil = user.perfil
 
     if request.method == 'POST':
         user.username = request.POST.get('username')
         user.email = request.POST.get('email')
-
         perfil.telefono = request.POST.get('telefono')
         perfil.direccion = request.POST.get('direccion')
 
         user.save()
         perfil.save()
 
-        # <-- 2. AGREGA ESTA LÍNEA JUSTO AQUÍ
+        # 🔥 Clave para que no se cierre la sesión al cambiar el username
         update_session_auth_hash(request, user) 
 
         messages.success(request, "Perfil actualizado correctamente")
-        
-        # Asegúrate de que el nombre del redirect coincida con tu urls.py
-        # (En tu log vi que entraste a 'dashboard-usuario', revisa si va con guion o guion bajo)
         return redirect('dashboard_usuario') 
 
     return render(request, 'editar_perfil.html', {
@@ -378,6 +377,34 @@ def editar_perfil(request):
         'perfil': perfil
     })
 
+
+@login_required
+def editar_perfil_vendedor(request): # 👈 Le cambiamos el nombre
+    user = request.user 
+
+    if request.method == 'POST':
+        form = EditarPerfilForm(request.POST, instance=user)
+
+        if form.is_valid():
+            user = form.save(commit=False)
+            password = form.cleaned_data.get("password")
+
+            if password:
+                user.set_password(password)  
+                user.save()
+                # Si cambió la contraseña, actualizamos el hash para que NO se cierre la sesión
+                update_session_auth_hash(request, user)
+            else:
+                # Si no escribió contraseña nueva, solo guardamos los otros datos (username, email, etc)
+                user.save()
+
+            messages.success(request, "Perfil de vendedor actualizado correctamente")
+            return redirect("dashboard_vendedor") # 👈 Te redirige a tu panel, no al login
+
+    else:
+        form = EditarPerfilForm(instance=user)
+
+    return render(request, "editar_perfil.html", {"form": form})
 
 # =====================================
 # DASHBOARD ADMIN
@@ -902,39 +929,8 @@ def dashboard_vendedor(request):
         "activos": activos
     })
 
-from django.template.loader import get_template
-from xhtml2pdf import pisa
-from django.http import HttpResponse
 
-# =====================================
-# Editar perfil (Vendedor)
-# =====================================
- 
-@login_required
-def editar_perfil(request):
-    user = request.user  # 🔥 SOLO el usuario logueado
 
-    if request.method == 'POST':
-        form = EditarPerfilForm(request.POST, instance=user)
-
-        if form.is_valid():
-            user = form.save(commit=False)
-
-            password = form.cleaned_data.get("password")
-
-            if password:
-                user.set_password(password)  # 🔥 encripta correctamente
-
-            user.save()
-
-            messages.success(request, "Perfil actualizado correctamente")
-
-            return redirect("login")  # ⚠️ se cierra sesión al cambiar contraseña
-
-    else:
-        form = EditarPerfilForm(instance=user)
-
-    return render(request, "editar_perfil.html", {"form": form})
 
 
 # =====================================
