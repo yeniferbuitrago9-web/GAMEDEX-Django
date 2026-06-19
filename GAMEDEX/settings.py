@@ -90,16 +90,17 @@ WSGI_APPLICATION = 'GAMEDEX.wsgi.application'
 # -------------------------------------------------
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        ssl_require=True
     )
 }
 
-# Si estamos en Render (conectados a Postgres), forzamos la zona horaria UTC
-if 'default' in DATABASES and DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
+# Inyección directa y segura de la opción de zona horaria para PostgreSQL
+if DATABASES['default'].get('ENGINE') == 'django.db.backends.postgresql':
     DATABASES['default']['OPTIONS'] = {
-        'options': '-c timezone=UTC',
+        'options': '-c timezone=utc',
     }
-
 
 # -------------------------------------------------
 # PASSWORD VALIDATION
