@@ -850,7 +850,7 @@ def dashboard_vendedor(request):
 
     if not request.user.groups.filter(name="Vendedor").exists():
         messages.error(request, "No tienes permiso.")
-        return redirect("redireccion_dashboard")
+        return redirect("dashboard")
 
     productos = Producto.objects.filter(vendedor=request.user).order_by('-id')
 
