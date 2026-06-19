@@ -381,7 +381,7 @@ def editar_perfil_usuario(request):
 @login_required
 def editar_perfil_vendedor(request):
     user = request.user 
-    perfil = user.perfil # 👈 Traemos el perfil aquí obligatoriamente
+    perfil = user.perfil 
 
     if request.method == 'POST':
         form = EditarPerfilForm(request.POST, instance=user)
@@ -392,15 +392,19 @@ def editar_perfil_vendedor(request):
 
             if password:
                 user.set_password(password)  
-                user.save()
-                update_session_auth_hash(request, user)
-            else:
-                user.save()
+            
+            # Guardamos los datos del usuario (encriptados o comunes)
+            user.save()
 
-            # Guardamos los datos de los inputs del perfil
+            # Guardamos los datos de los inputs manuales de tu perfil
             perfil.telefono = request.POST.get('telefono')
             perfil.direccion = request.POST.get('direccion')
             perfil.save()
+
+            # 🔥 REFRESCAR LA SESIÓN (DEBE IR AQUÍ FUERA)
+            # No importa si cambió la contraseña o solo el username/email,
+            # esto le dice a Django que mantenga al vendedor logueado.
+            update_session_auth_hash(request, user)
 
             messages.success(request, "Perfil de vendedor actualizado correctamente")
             return redirect("dashboard_vendedor")
@@ -411,8 +415,8 @@ def editar_perfil_vendedor(request):
     return render(request, "editar_perfil.html", {
         "form": form,
         "user": user,
-        "perfil": perfil, # 👈 Manda los datos del perfil al HTML manual
-        "url_cancelar": "dashboard_vendedor" # 👈 Destino del botón cancelar
+        "perfil": perfil,
+        "url_cancelar": "dashboard_vendedor"
     })
 
 # =====================================
