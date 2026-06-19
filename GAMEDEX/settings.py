@@ -94,6 +94,12 @@ DATABASES = {
     )
 }
 
+# Si estamos en Render (conectados a Postgres), forzamos la zona horaria UTC
+if 'default' in DATABASES and DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
+    DATABASES['default']['OPTIONS'] = {
+        'options': '-c timezone=UTC',
+    }
+
 
 # -------------------------------------------------
 # PASSWORD VALIDATION
@@ -122,7 +128,6 @@ TIME_ZONE = 'UTC'
 USE_TZ = True
 
 USE_I18N = True
-USE_TZ = True
 
 
 # -------------------------------------------------
