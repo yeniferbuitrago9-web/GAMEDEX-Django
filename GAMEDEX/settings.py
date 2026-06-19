@@ -102,9 +102,12 @@ if db_url:
         if 'timezone' not in db_url:
             db_url += '&options=-c%20timezone=utc'
 
+# -------------------------------------------------
+# DATABASE
+# -------------------------------------------------
 DATABASES = {
     'default': dj_database_url.config(
-        default=db_url if db_url else f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
         ssl_require=True
     )
@@ -178,6 +181,9 @@ ASGI_APPLICATION = "GAMEDEX.asgi.application"
 # -------------------------------------------------
 # LOGGING (para ver errores 500 en los logs de Render)
 # -------------------------------------------------
+# -------------------------------------------------
+# LOGGING (Captura detallada para producción)
+# -------------------------------------------------
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -187,10 +193,10 @@ LOGGING = {
         },
     },
     'loggers': {
-        'django.request': {
+        'django': {  # Captura el núcleo de Django, incluyendo auth y errores de base de datos
             'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': False,
+            'level': 'INFO',
+            'propagate': True,
         },
     },
 }
