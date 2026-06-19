@@ -50,7 +50,7 @@ def inicio(request):
     return render(request, 'inicio.html', {'productos': productos})
 
 # =====================================
-# REGISTRO
+# REGISTRO (MÉTODO SEGURO TRADICIONAL)
 # =====================================
 def registro(request):
     if request.method == 'POST':
@@ -63,12 +63,64 @@ def registro(request):
 
             messages.success(request, "Usuario registrado correctamente.")
             return redirect('login')
+        else:
+            # Si el formulario tiene errores, se los mandamos a los mensajes
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.capitalize()}: {error}")
     else:
         form = UserCreationForm()
 
     return render(request, 'registro.html', {'form': form})
 
 
+# =====================================
+# REGISTRO PUBLICO (MÉTODO PARA EL HTML CIBER)
+# =====================================
+def registro_publico(request):
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "").strip()
+        rol = request.POST.get("rol")
+
+        # 1. Validaciones previas obligatorias
+        if not username or not password:
+            messages.error(request, "El nombre de usuario y la contraseña son obligatorios.")
+            return render(request, "registro_publico.html")
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "El nombre de usuario ya se encuentra registrado.")
+            return render(request, "registro_publico.html")
+            
+        if email and User.objects.filter(email=email).exists():
+            messages.error(request, "Este correo electrónico ya está en uso.")
+            return render(request, "registro_publico.html")
+
+        # 2. Intentar la creación segura del usuario
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password
+            )
+
+            # Asignar grupo según elección de tu select
+            if rol == "Vendedor":
+                grupo, _ = Group.objects.get_or_create(name="Vendedor")
+            else:
+                grupo, _ = Group.objects.get_or_create(name="Cliente")
+
+            user.groups.add(grupo)
+
+            messages.success(request, "¡Cuenta creada correctamente! Ya puedes iniciar sesión.")
+            return redirect("login")
+
+        except Exception as e:
+            messages.error(request, f"Error inesperado al crear la cuenta: {str(e)}")
+            return render(request, "registro_publico.html")
+
+    return render(request, "registro_publico.html")
 # =====================================
 # DASHBOARD USUARIO
 # =====================================
@@ -785,41 +837,6 @@ def exportar_excel_usuarios(request):
     wb.save(response)
 
     return response
-
-
-# =====================================
-# REGISTRO PUBLICO
-# =====================================
-def registro_publico(request):
-
-    if request.method == "POST":
-        username = request.POST.get("username")
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-        rol = request.POST.get("rol")  # El nombre que viene del select
-
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "El usuario ya existe.")
-            return redirect("registro_publico")
-
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password
-        )
-
-        # 🔥 ASIGNAR GRUPO SEGÚN ELECCIÓN
-        if rol == "Vendedor":
-            grupo, _ = Group.objects.get_or_create(name="Vendedor")
-        else:
-            grupo, _ = Group.objects.get_or_create(name="Cliente")
-
-        user.groups.add(grupo)
-
-        messages.success(request, "Cuenta creada correctamente.")
-        return redirect("login")
-
-    return render(request, "registro_publico.html")
 
 
 # =====================================

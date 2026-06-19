@@ -61,7 +61,6 @@ urlpatterns = [
 
     #editar perfil
     path('editar-perfil/', views.editar_perfil, name='editar_perfil'),
-    path('editar-perfil/', views.editar_perfil, name='editar_perfil'),
 
 
     path("exportar-pdf/", views.exportar_pdf_vendedor, name="exportar_pdf_vendedor"),
@@ -91,5 +90,6 @@ urlpatterns = [
      path('eliminar_publicacion/<int:post_id>/', views.eliminar_publicacion, name='eliminar_publicacion'),
 ]
 
-if settings.DEBUG:
+#  SOLUCIÓN DEFINITIVA PARA IMÁGENES EN RENDER (FUNCIONA CON DEBUG=FALSE)
+if settings.MEDIA_URL:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

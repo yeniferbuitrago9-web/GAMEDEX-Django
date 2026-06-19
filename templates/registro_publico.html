@@ -1,38 +1,225 @@
-{% extends "layouts/auth_base.html" %}
 {% load static %}
-{% block title %}Registro{% endblock %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GAMEDEX CYBER REGISTRO</title>
+    <meta charset="UTF-8">
 
-{% block content %}
+    <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
 
-<div class="auth-box">
-   <center><a href="{% url 'inicio' %}"> <img src="{% static 'imagenes/logo.png' %} " alt="Logo GAMEDEX" style="width: 100px; height: 100px; margin-bottom: 20px;"> </a></center>
-    <h2>Crear Cuenta</h2>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(270deg, #020617, #0f172a, #020617);
+            background-size: 600% 600%;
+            animation: bgMove 10s infinite alternate;
+        }
 
-    <form method="POST">
+        @keyframes bgMove {
+            0% {background-position: 0%;}
+            100% {background-position: 100%;}
+        }
+
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 🔥 REGISTRO BOX */
+        .login-box {
+            position: relative;
+            z-index: 2;
+            width: 360px;
+            margin: auto;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 40px;
+            border-radius: 15px;
+            background: rgba(2,6,23,0.9);
+            box-shadow: 0 0 40px #00ffff;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 👾 GLITCH EFFECT */
+        .glitch {
+            position: relative;
+            color: #00ffff;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        img {
+            width: 100px;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 15px #00ffff);
+        }
+
+        .form-container {
+            width: 100%;
+        }
+
+        .input-group {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 10px;
+            top: 12px;
+            color: #00ffff;
+            font-size: 18px;
+            pointer-events: none;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 12px 12px 35px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background: #020617;
+            color: white;
+            border: 1px solid #00ffff50;
+            box-sizing: border-box;
+        }
+
+        select {
+            padding-left: 32px;
+            cursor: pointer;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        /* BOTON ENERGIA */
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #00ffff, #1e90ff);
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            color: black;
+        }
+
+        button:hover {
+            transform: scale(1.07);
+            box-shadow: 0 0 25px #00ffff;
+        }
+
+        a {
+            color: #00ffff;
+            text-decoration: none;
+        }
+
+        p {
+            color: #ccc;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="particles-js"></div>
+
+<div class="login-box">
+
+    <a href="{% url 'inicio' %}">
+        <img src="{% static 'imagenes/logo.png' %}">
+    </a>
+
+    <h2 class="glitch">CREAR CUENTA</h2>
+
+    <form method="POST" style="width: 100%;">
         {% csrf_token %}
 
-        <input type="text" name="username" placeholder="Nombre de usuario" required>
+        {% if messages %}
+            <div style="background: rgba(255, 0, 0, 0.2); border: 1px solid #ff0000; padding: 10px; border-radius: 8px; margin-bottom: 15px; color: #ff9999; font-size: 14px; text-align: left; width: 100%; box-sizing: border-box;">
+                <strong style="color: #ff3333;">⚠️ Error en el registro:</strong>
+                <ul style="margin: 5px 0 0 0; padding-left: 20px;">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
 
-        <input type="email" name="email" placeholder="Correo electrónico">
+        <div class="form-container">
+            <div class="input-group">
+                <i>👤</i>
+                <input type="text" name="username" placeholder="Nombre de usuario" required>
+            </div>
 
-        <input type="password" name="password" placeholder="Contraseña" required>
+            <div class="input-group">
+                <i>✉️</i>
+                <input type="email" name="email" placeholder="Correo electrónico">
+            </div>
 
-        <select name="rol" required>
-    <option value="">Selecciona tipo de cuenta</option>
-    <option value="Cliente">Usuario</option>   <!-- Debe coincidir con el nombre del grupo -->
-    <option value="Vendedor">Vendedor</option>
-</select>
+            <div class="input-group">
+                <i>🔒</i>
+                <input type="password" name="password" placeholder="Contraseña" required>
+            </div>
 
+            <div class="input-group">
+                <i>🎭</i>
+                <select name="rol" required>
+                    <option value="">Selecciona tipo de cuenta</option>
+                    <option value="Cliente">Usuario</option>
+                    <option value="Vendedor">Vendedor</option>
+                </select>
+            </div>
+        </div>
 
         <button type="submit">Registrarse</button>
 
-        <div class="auth-link">
+        <div style="margin-top:15px;">
+            <p>¿Ya tienes una cuenta?</p>
             <a href="{% url 'login' %}">Volver al Login</a>
         </div>
 
     </form>
-
 </div>
 
-{% endblock %}
+<script>
+particlesJS("particles-js", {
+    particles: {
+        number: { value: 100 },
+        size: { value: 3 },
+        color: { value: "#00ffff" },
+        line_linked: {
+            enable: true,
+            distance: 130,
+            color: "#00ffff",
+            opacity: 0.4
+        },
+        move: {
+            enable: true,
+            speed: 2
+        }
+    },
+    interactivity: {
+        events: {
+            onhover: { enable: true, mode: "grab" },
+            onclick: { enable: true, mode: "push" }
+        },
+        modes: {
+            grab: { distance: 150, line_linked: { opacity: 1 }},
+            push: { particles_nb: 5 }
+        }
+    }
+});
+</script>
 
+</body>
+</html>
