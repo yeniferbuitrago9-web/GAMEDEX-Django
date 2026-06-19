@@ -353,7 +353,7 @@ def descargar_factura_pdf(request):
 # =====================================
 
 @login_required
-def editar_perfil_usuario(request): # 👈 Le cambiamos el nombre
+def editar_perfil_usuario(request):
     user = request.user
     perfil = user.perfil
 
@@ -366,7 +366,6 @@ def editar_perfil_usuario(request): # 👈 Le cambiamos el nombre
         user.save()
         perfil.save()
 
-        # 🔥 Clave para que no se cierre la sesión al cambiar el username
         update_session_auth_hash(request, user) 
 
         messages.success(request, "Perfil actualizado correctamente")
@@ -374,13 +373,14 @@ def editar_perfil_usuario(request): # 👈 Le cambiamos el nombre
 
     return render(request, 'editar_perfil.html', {
         'user': user,
-        'perfil': perfil
+        'perfil': perfil  # 👈 Enviado correctamente
     })
 
 
 @login_required
-def editar_perfil_vendedor(request): # 👈 Le cambiamos el nombre
+def editar_perfil_vendedor(request):
     user = request.user 
+    perfil = user.perfil  # 👈 Obtenemos el perfil aquí también
 
     if request.method == 'POST':
         form = EditarPerfilForm(request.POST, instance=user)
@@ -392,19 +392,27 @@ def editar_perfil_vendedor(request): # 👈 Le cambiamos el nombre
             if password:
                 user.set_password(password)  
                 user.save()
-                # Si cambió la contraseña, actualizamos el hash para que NO se cierre la sesión
                 update_session_auth_hash(request, user)
             else:
-                # Si no escribió contraseña nueva, solo guardamos los otros datos (username, email, etc)
                 user.save()
 
+            # 🔥 Guardamos los campos del perfil que vienen de tu HTML manual
+            perfil.telefono = request.POST.get('telefono')
+            perfil.direccion = request.POST.get('direccion')
+            perfil.save()
+
             messages.success(request, "Perfil de vendedor actualizado correctamente")
-            return redirect("dashboard_vendedor") # 👈 Te redirige a tu panel, no al login
+            return redirect("dashboard_vendedor")
 
     else:
         form = EditarPerfilForm(instance=user)
 
-    return render(request, "editar_perfil.html", {"form": form})
+    # 🔥 Pasamos 'perfil' al contexto para que tus inputs manuales muestren los datos viejos
+    return render(request, "editar_perfil.html", {
+        "form": form,
+        "user": user,
+        "perfil": perfil  # 👈 ¡ESTO es lo que le faltaba a la vista del vendedor!
+    })
 
 # =====================================
 # DASHBOARD ADMIN
