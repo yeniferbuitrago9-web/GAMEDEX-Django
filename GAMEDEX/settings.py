@@ -8,6 +8,15 @@ import os
 import dj_database_url
 
 # -------------------------------------------------
+# PARCHE FORZADO PARA ERROR DE UTC EN POSTGRESQL
+# -------------------------------------------------
+try:
+    from django.db.backends.postgresql import utils
+    utils.utc_tzinfo_factory = lambda: None
+except ImportError:
+    pass
+
+# -------------------------------------------------
 # BASE DIR
 # -------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
