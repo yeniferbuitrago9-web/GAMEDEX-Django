@@ -348,8 +348,9 @@ def descargar_factura_pdf(request):
 # =====================================
 # PERFIL
 # =====================================
-def editar_perfil(request):
+from django.contrib.auth import update_session_auth_hash # <-- 1. IMPORTA ESTO
 
+def editar_perfil(request):
     user = request.user
     perfil = user.perfil
 
@@ -363,8 +364,14 @@ def editar_perfil(request):
         user.save()
         perfil.save()
 
+        # <-- 2. AGREGA ESTA LÍNEA JUSTO AQUÍ
+        update_session_auth_hash(request, user) 
+
         messages.success(request, "Perfil actualizado correctamente")
-        return redirect('dashboard_usuario')
+        
+        # Asegúrate de que el nombre del redirect coincida con tu urls.py
+        # (En tu log vi que entraste a 'dashboard-usuario', revisa si va con guion o guion bajo)
+        return redirect('dashboard_usuario') 
 
     return render(request, 'editar_perfil.html', {
         'user': user,
