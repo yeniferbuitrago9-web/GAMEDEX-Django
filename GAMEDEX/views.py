@@ -826,16 +826,28 @@ def editar_usuario(request, user_id):
     usuario = get_object_or_404(User, id=user_id)
 
     if request.method == "POST":
-        usuario.username = request.POST.get("username")
+        nuevo_username = request.POST.get("username") # 👈 Capturamos el nombre primero
         usuario.email = request.POST.get("email")
 
         rol = request.POST.get("rol")
         nueva_password = request.POST.get("password")
 
+        # 🔥 VALIDACIÓN: Verificamos si ese username ya existe en OTRO usuario distinto
+        if User.objects.filter(username=nuevo_username).exclude(id=user_id).exists():
+            grupos = Group.objects.all()
+            messages.error(request, f"El nombre de usuario '{nuevo_username}' ya está en uso por otra cuenta.")
+            return render(request, "editar_usuario.html", {
+                "usuario": usuario,
+                "grupos": grupos
+            })
+
+        # Si el nombre no está repetido, se lo asignamos al usuario seguro
+        usuario.username = nuevo_username
+
         if nueva_password:
             usuario.set_password(nueva_password)
 
-        usuario.save()
+        usuario.save() # 👈 Ya no romperá la base de datos
 
         usuario.groups.clear()
         grupo, _ = Group.objects.get_or_create(name=rol)
