@@ -96,12 +96,12 @@ DATABASES = {
     )
 }
 
-# Inyección directa y segura de la opción de zona horaria para PostgreSQL
-if DATABASES['default'].get('ENGINE') == 'django.db.backends.postgresql':
-    DATABASES['default']['OPTIONS'] = {
-        'options': '-c timezone=utc',
-    }
+# Forzamos las opciones directamente sin importar el motor detectado
+if 'default' in DATABASES:
+    DATABASES['default']['OPTIONS'] = DATABASES['default'].get('OPTIONS', {})
+    DATABASES['default']['OPTIONS']['options'] = '-c timezone=utc'
 
+    
 # -------------------------------------------------
 # PASSWORD VALIDATION
 # -------------------------------------------------
