@@ -138,19 +138,32 @@ tbody tr:hover { background:#475569; }
     </div>
 
 </div>
-
+<div id="toast-container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="toast alert-{{ message.tags }}">
+                {% if message.tags == 'error' %}❌{% else %}✅{% endif %} {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
 <!-- TOAST -->
 <div id="toast-container"></div>
 
 <script>
 
-/* 🔥 NOTIFICACIONES */
-function showToast(message) {
+/* 🔥 NOTIFICACIONES REFORZADAS */
+function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.classList.add('toast');
+    
+    // Si viene un tipo (success o error) desde AJAX, le ponemos la clase correcta
+    if(type !== 'info') {
+        toast.classList.add(`alert-${type}`);
+    }
+    
     toast.innerText = message;
-
     container.appendChild(toast);
 
     setTimeout(() => {
@@ -158,6 +171,15 @@ function showToast(message) {
     }, 3000);
 }
 
+// 🔥 TRUCO: Autodesvanecer los mensajes de Django que ya venían cargados en el HTML
+document.addEventListener("DOMContentLoaded", () => {
+    const alertasIniciales = document.querySelectorAll('#toast-container .toast');
+    alertasIniciales.forEach(toast => {
+        setTimeout(() => {
+            toast.remove();
+        }, 4000); // Se borran a los 4 segundos
+    });
+});
 /* 🔥 AJAX SEARCH + FILTER */
 const searchInput = document.getElementById("search");
 const rolFilter = document.getElementById("rolFilter");
