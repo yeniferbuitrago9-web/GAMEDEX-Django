@@ -12,7 +12,8 @@ import dj_database_url
 # -------------------------------------------------
 try:
     from django.db.backends.postgresql import utils
-    utils.utc_tzinfo_factory = lambda: None
+    # Usamos *args para que acepte cualquier parámetro que Django le envíe
+    utils.utc_tzinfo_factory = lambda *args, **kwargs: None
 except ImportError:
     pass
 
