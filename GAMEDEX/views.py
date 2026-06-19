@@ -850,7 +850,7 @@ def dashboard_vendedor(request):
 
     if not request.user.groups.filter(name="Vendedor").exists():
         messages.error(request, "No tienes permiso.")
-        return redirect("dashboard")
+        return redirect("redireccion_dashboard")
 
     productos = Producto.objects.filter(vendedor=request.user).order_by('-id')
 
@@ -1049,9 +1049,14 @@ def editar_producto(request, producto_id):
 # ELIMINAR PRODUCTO
 # =====================================
 @login_required
-def eliminar_producto(request, producto_id):
+@login_required
+def eliminar_producto_vendedor(request, producto_id):
 
     producto = get_object_or_404(Producto, id=producto_id)
+
+    if producto.vendedor != request.user:
+        messages.error(request, "No tienes permiso para eliminar este producto.")
+        return redirect("dashboard_vendedor")
 
     producto.delete()
 
