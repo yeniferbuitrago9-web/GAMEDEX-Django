@@ -1,10 +1,11 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
 from . import views
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect, render
+from django.views.static import serve as serve_static
 
 def inicio(request):
     return render(request, 'inicio.html')
@@ -90,6 +91,7 @@ urlpatterns = [
      path('eliminar_publicacion/<int:post_id>/', views.eliminar_publicacion, name='eliminar_publicacion'),
 ]
 
-#  SOLUCIÓN DEFINITIVA PARA IMÁGENES EN RENDER (FUNCIONA CON DEBUG=FALSE)
-if settings.MEDIA_URL:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Servir archivos MEDIA en producción (sin el bloqueo interno de static())
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', serve_static, {'document_root': settings.MEDIA_ROOT}),
+]
