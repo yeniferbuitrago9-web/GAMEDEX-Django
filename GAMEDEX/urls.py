@@ -6,9 +6,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect, render
 from django.views.static import serve as serve_static
+from .models import Producto # Asegúrate de importar tu modelo
 
 def inicio(request):
-    return render(request, 'inicio.html')
+    # Filtramos solo los que quieras mostrar (ej: todos los publicados)
+    productos = Producto.objects.filter(publicado=True) 
+    return render(request, 'inicio.html', {'productos': productos})
 
 
 urlpatterns = [
