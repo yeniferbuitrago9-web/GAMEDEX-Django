@@ -96,6 +96,10 @@ urlpatterns = [
     path('eliminar_publicacion/<int:post_id>/', views.eliminar_publicacion, name='eliminar_publicacion'),
 
 
+     # Dentro de urlpatterns...
+    path('admin/gestionar-productos/', views.gestionar_productos_admin, name='gestionar_productos_admin'),
+    path('admin/editar-producto/<int:id>/', views.admin_editar_producto, name='admin_editar_producto'),
+    path('admin/eliminar-producto/<int:id>/', views.admin_eliminar_producto, name='admin_eliminar_producto'),
 ]
 
 
