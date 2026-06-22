@@ -490,7 +490,7 @@ def lista_usuarios(request):
 # =====================================
 
 def admin_comunidades(request):
-    if request.user.perfil.rol != "Administrador":
+    if not request.user.groups.filter(name="Administrador").exists():
         return redirect('inicio')
 
     comunidades = Comunidad.objects.all()
@@ -652,8 +652,11 @@ def crear_comunidad(request):
 def editar_comunidad(request, id):
     comunidad = get_object_or_404(Comunidad, id=id)
 
+    # MODIFICACIÓN: Usamos el sistema de grupos de Django para mayor estabilidad
+    es_admin = request.user.groups.filter(name="Administrador").exists()
+    
     # Verifica permisos: creador o admin
-    if request.user != comunidad.creador and request.user.perfil.rol != "Administrador":
+    if request.user != comunidad.creador and not es_admin:
         return HttpResponseForbidden("No tienes permiso para editar esta comunidad.")
 
     if request.method == "POST":
@@ -669,7 +672,10 @@ def editar_comunidad(request, id):
 def eliminar_comunidad(request, id):
     comunidad = get_object_or_404(Comunidad, id=id)
 
-    if request.user != comunidad.creador and request.user.perfil.rol != "Administrador":
+    # MODIFICACIÓN: Validamos igual que en editar_comunidad
+    es_admin = request.user.groups.filter(name="Administrador").exists()
+
+    if request.user != comunidad.creador and not es_admin:
         return HttpResponseForbidden()
 
     comunidad.delete()
@@ -1146,3 +1152,18 @@ def redireccion_dashboard(request):
 def cerrar_sesion(request):
     logout(request)
     return redirect("login")
+
+def obtener_rol_seguro(user):
+    # Primero intentamos con tu lógica actual (perfil)
+    try:
+        if user.is_authenticated and hasattr(user, 'perfil'):
+            return user.perfil.rol
+    except:
+        pass
+    
+    # Si falla, el sistema de grupos nos dice la verdad
+    if user.groups.filter(name="Administrador").exists():
+        return "Administrador"
+    if user.groups.filter(name="Vendedor").exists():
+        return "Vendedor"
+    return "Usuario"
