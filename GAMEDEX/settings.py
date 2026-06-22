@@ -95,22 +95,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'GAMEDEX.wsgi.application'
 
 
-# -------------------------------------------------
-# DATABASE
-# -------------------------------------------------
-import os
-
-# Tomamos la URL de la base de datos de Render
-db_url = os.environ.get('DATABASE_URL')
-
-if db_url:
-    # Si la URL no tiene ya parámetros, le añadimos el timezone mediante '?'
-    if '?' not in db_url:
-        db_url += '?options=-c%20timezone=utc'
-    else:
-        # Si ya tiene parámetros (como sslmode), le concatenamos el timezone con '&'
-        if 'timezone' not in db_url:
-            db_url += '&options=-c%20timezone=utc'
 
 # -------------------------------------------------
 # DATABASE
