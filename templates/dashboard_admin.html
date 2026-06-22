@@ -113,6 +113,7 @@ tbody tr:hover { background:#475569; }
         <div class="card-header">
             <h2>Gestión de Usuarios</h2>
             <div>
+                <a href="{% url 'gestionar_productos_admin' %}" class="btn warning">📦 Productos</a>
                 <a href="{% url 'crear_usuario' %}" class="btn primary">+ Nuevo</a>
                 <a href="{% url 'exportar_pdf_usuarios' %}" class="btn danger">PDF</a>
                 <a href="{% url 'exportar_excel_usuarios' %}" class="btn success">Excel</a>
