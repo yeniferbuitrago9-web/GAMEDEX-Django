@@ -1064,30 +1064,31 @@ def toggle_destacado(request, producto_id):
 # =====================================
 @login_required
 def editar_producto(request, producto_id):
-
     producto = get_object_or_404(Producto, id=producto_id)
+    
+    # 🔐 Seguridad: solo el dueño puede editar
+    if producto.vendedor != request.user:
+        return HttpResponseForbidden("No tienes permiso.")
 
     if request.method == "POST":
         producto.nombre = request.POST.get("nombre")
         producto.descripcion = request.POST.get("descripcion")
-        producto.precio = request.POST.get("precio")
-        producto.cantidad = request.POST.get("cantidad")
+        # Conversión explícita para evitar errores de tipo
+        producto.precio = float(request.POST.get("precio", 0))
+        producto.cantidad = int(request.POST.get("cantidad", 0))
 
         if request.FILES.get("imagen"):
             producto.imagen = request.FILES.get("imagen")
 
         producto.save()
-
         messages.success(request, "Producto actualizado.")
         return redirect("dashboard_vendedor")
 
     return render(request, "editar_producto.html", {"producto": producto})
 
-
 # =====================================
 # ELIMINAR PRODUCTO
 # =====================================
-@login_required
 @login_required
 def eliminar_producto_vendedor(request, producto_id):
 
