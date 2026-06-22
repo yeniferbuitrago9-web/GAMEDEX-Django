@@ -1168,3 +1168,51 @@ def obtener_rol_seguro(user):
         return "Vendedor"
     return "Usuario"
 
+@login_required
+def gestionar_productos_admin(request):
+    # Solo administradores pueden entrar
+    if not request.user.groups.filter(name="Administrador").exists():
+        messages.error(request, "Acceso denegado.")
+        return redirect("inicio")
+
+    productos = Producto.objects.all().order_by('-creado')
+    
+    # Buscador opcional
+    query = request.GET.get("q")
+    if query:
+        productos = productos.filter(nombre__icontains=query)
+
+    return render(request, "admin/gestionar_productos.html", {
+        "productos": productos
+    })
+
+@login_required
+def admin_editar_producto(request, id):
+    producto = get_object_or_404(Producto, id=id)
+    
+    # Validar que sea admin
+    if not request.user.groups.filter(name="Administrador").exists():
+        return HttpResponseForbidden("No eres administrador.")
+
+    if request.method == "POST":
+        # Aquí permites editar cualquier campo
+        producto.nombre = request.POST.get("nombre")
+        producto.precio = request.POST.get("precio")
+        producto.publicado = request.POST.get("publicado") == 'on' # Checkbox
+        producto.save()
+        messages.success(request, f"Producto '{producto.nombre}' editado por Admin.")
+        return redirect("gestionar_productos_admin")
+        
+    return render(request, "admin/editar_producto.html", {"producto": producto})
+
+@login_required
+def admin_eliminar_producto(request, id):
+    producto = get_object_or_404(Producto, id=id)
+    
+    if request.user.groups.filter(name="Administrador").exists():
+        producto.delete()
+        messages.success(request, "Producto eliminado por el Administrador.")
+    else:
+        messages.error(request, "No tienes permiso.")
+        
+    return redirect("gestionar_productos_admin")
