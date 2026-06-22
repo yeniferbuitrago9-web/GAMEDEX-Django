@@ -1,183 +1,41 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GAMEDEX</title>
+{% extends 'base.html' %}
 
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Orbitron', sans-serif;
-            background: #0f172a;
-            color: white;
-            overflow-x: hidden;
-        }
+{% block title %}Inicio - GAMEDEX{% endblock %}
 
-        /* FONDO ANIMADO */
-        body::before {
-            content: "";
-            position: fixed;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, #00c6ff22 1px, transparent 1px);
-            background-size: 40px 40px;
-            animation: moveBg 20s linear infinite;
-            z-index: -1;
-        }
+{% block content %}
+<style>
+    .hero { text-align: center; padding: 60px 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; padding: 0 40px; }
+    .card { background: #1e293b; padding: 15px; border-radius: 15px; border: 1px solid #334155; transition: 0.3s; }
+    .card:hover { transform: translateY(-10px); border-color: #00c6ff; box-shadow: 0 5px 15px #00c6ff33; }
+    .card img { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; }
+    .precio { color: #00ff88; font-weight: bold; margin-top: 10px; display: block; }
+</style>
 
-        @keyframes moveBg {
-            from { transform: translate(0, 0); }
-            to { transform: translate(-200px, -200px); }
-        }
+<div class="hero">
+    <h2>Tu mundo gamer comienza aquí 🎮</h2>
+    <p style="color: #94a3b8;">Compra, vende y descubre lo mejor del gaming</p>
+</div>
 
-        /* NAVBAR */
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 40px;
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
-                        url('https://images.unsplash.com/photo-1542751371-adc38448a05e');
-            background-size: cover;
-            color: #00c6ff;
-            border-bottom: 2px solid #00c6ff;
-        }
+<div class="productos" style="padding: 0 40px 40px 40px;">
+    <h3 style="color: #00c6ff; margin-bottom: 20px;">🔥 Productos Destacados</h3>
 
-        .navbar h1 {
-            margin: 0;
-            font-size: 26px;
-            letter-spacing: 2px;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 15px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border-radius: 25px;
-            border: 1px solid #00c6ff;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            background: transparent;
-            color: #00c6ff;
-        }
-
-        .btn:hover {
-            background: #00c6ff;
-            color: black;
-            transform: scale(1.1);
-            box-shadow: 0 0 15px #00c6ff;
-        }
-
-        /* HERO */
-        .hero {
-            text-align: center;
-            padding: 60px 20px;
-        }
-
-        .hero h2 {
-            font-size: 40px;
-            margin-bottom: 10px;
-        }
-
-        .hero p {
-            color: #ccc;
-        }
-
-        /* PRODUCTOS */
-        .productos {
-            padding: 40px;
-        }
-
-        .productos h3 {
-            margin-bottom: 20px;
-            color: #00c6ff;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            transition: 0.3s;
-            border: 1px solid transparent;
-        }
-
-        .card:hover {
-            transform: translateY(-10px);
-            border: 1px solid #00c6ff;
-            box-shadow: 0 0 20px #00c6ff44;
-        }
-
-        .card img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 10px;
-        }
-
-        .card h4 {
-            margin: 10px 0;
-        }
-
-        .precio {
-            color: #00ff88;
-            font-weight: bold;
-        }
-
-    </style>
-</head>
-
-<body>
-
-    <!-- NAVBAR -->
-    <div class="navbar">
-        <h1>GAMEDEX</h1>
-
-        <div class="nav-buttons">
-            <a href="{% url 'login' %}"><button class="btn">Login</button></a>
-            <a href="{% url 'registro_publico' %}"><button class="btn">Registro</button></a>
-        </div>
-    </div>
-
-    <!-- HERO -->
-    <div class="hero">
-        <h2>Tu mundo gamer comienza aquí 🎮</h2>
-        <p>Compra, vende y descubre lo mejor del gaming</p>
-    </div>
-
-    <!-- PRODUCTOS DESTACADOS -->
-    <div class="productos">
-        <h3>🔥 Productos Destacados</h3>
-
-      {% if productos %}
+    {% if productos %}
     <div class="grid">
-        {% for producto in productos %}
+        {% for p in productos %}
         <div class="card">
-            {% if producto.imagen %}
-                <img src="{{ producto.imagen.url }}">
+            {% if p.imagen %}
+                <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}">
+            {% else %}
+                <div style="height: 160px; background:#334155; display:flex; align-items:center; justify-content:center; border-radius:10px;">Sin imagen</div>
             {% endif %}
-            <h4>{{ producto.nombre }}</h4>
-            <p class="precio">${{ producto.precio }}</p>
+            <h4 style="margin: 15px 0 5px 0;">{{ p.nombre }}</h4>
+            <span class="precio">${{ p.precio }}</span>
         </div>
         {% endfor %}
     </div>
-{% else %}
-    <p>No hay productos destacados aún 😢</p>
-{% endif %}
-
-        </div>
-    </div>
-
-</body>
-</html>
+    {% else %}
+    <p style="color: #64748b;">No hay productos destacados aún 😢</p>
+    {% endif %}
+</div>
+{% endblock %}

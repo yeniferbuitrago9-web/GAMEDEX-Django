@@ -2,19 +2,35 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GAMEDEX{% endblock %}</title>
-</head>
-<body style="background-color:#f0f6f7; font-family: Arial;">
+    <style>
+        body { margin: 0; font-family: 'Orbitron', sans-serif; background: #0f172a; color: white; overflow-x: hidden; }
+        
+        /* Fondo animado global */
+        body::before { content: ""; position: fixed; width: 200%; height: 200%; background: radial-gradient(circle, #00c6ff11 1px, transparent 1px); background-size: 40px 40px; animation: moveBg 20s linear infinite; z-index: -1; }
+        @keyframes moveBg { from { transform: translate(0, 0); } to { transform: translate(-200px, -200px); } }
 
-    <nav style="background-color:#0f172a; padding:15px;">
-        <a href="/" style="color:white; margin-right:20px;">Inicio</a>
-        <a href="/dashboard-vendedor/" style="color:white;">Dashboard</a>
+        /* Estilo Nav */
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; background: rgba(0,0,0,0.5); border-bottom: 2px solid #00c6ff; }
+        .nav-buttons { display: flex; gap: 15px; }
+        .btn-nav { padding: 8px 20px; border-radius: 20px; border: 1px solid #00c6ff; color: #00c6ff; text-decoration: none; transition: 0.3s; }
+        .btn-nav:hover { background: #00c6ff; color: black; box-shadow: 0 0 10px #00c6ff; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <h1 style="margin:0; color:#00c6ff;">GAMEDEX</h1>
+        <div class="nav-buttons">
+            <a href="{% url 'login' %}" class="btn-nav">Login</a>
+            <a href="{% url 'registro_publico' %}" class="btn-nav">Registro</a>
+        </div>
     </nav>
 
-    <div>
-        {% block content %}
-        {% endblock %}
-    </div>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
 
 </body>
 </html>
