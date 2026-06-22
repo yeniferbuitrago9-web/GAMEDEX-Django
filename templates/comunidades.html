@@ -160,11 +160,11 @@ h2 {
         <div>
             <a href="{% url 'crear_comunidad' %}" class="btn btn-crear">➕ Crear</a>
 
-           {% if request.user.perfil.rol == "Administrador" %}
-            <a href="{% url 'dashboard_admin' %}" class="btn btn-volver">🔙 Inicio</a>
-             {% else %}
-            <a href="{% url 'dashboard_usuario' %}" class="btn btn-volver">🔙 Inicio</a>
-            {% endif %}
+           {% if es_admin %}
+    <a href="{% url 'dashboard_admin' %}" class="btn btn-volver">🔙 Inicio</a>
+{% else %}
+    <a href="{% url 'dashboard_usuario' %}" class="btn btn-volver">🔙 Inicio</a>
+{% endif %}
         </div>
     </div>
 
