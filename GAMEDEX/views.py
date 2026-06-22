@@ -617,9 +617,7 @@ def comentar(request, id):
 def lista_comunidades(request):
     comunidades = Comunidad.objects.all()
 
-    es_admin = False
-    if request.user.is_authenticated:
-        es_admin = request.user.perfil.rol == "Administrador"
+    es_admin = request.user.groups.filter(name="Administrador").exists()
 
     return render(request, "comunidades.html", {
         "comunidades": comunidades,
