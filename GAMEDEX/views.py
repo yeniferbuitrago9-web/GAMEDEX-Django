@@ -22,6 +22,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import get_template
 from django.http import HttpResponse
 from django.contrib.auth import update_session_auth_hash
+from datetime import timedelta
+from django.utils import timezone
 
 
 
@@ -29,6 +31,12 @@ from django.contrib.auth import update_session_auth_hash
 # INICIO
 # =====================================
 
+
+def usuario_online(perfil):
+    if not perfil.last_seen:
+        return False
+
+    return timezone.now() - perfil.last_seen < timedelta(minutes=2)
 
 def api_productos(request):
     productos = Producto.objects.all()[:20]
@@ -459,31 +467,32 @@ def lista_usuarios(request):
     query = request.GET.get("q", "")
     rol = request.GET.get("rol", "")
 
-    usuarios = User.objects.all()
+    perfiles = Perfil.objects.select_related("user").all()
 
     if query:
-        usuarios = usuarios.filter(
-            Q(username__icontains=query) |
-            Q(email__icontains=query)
+        perfiles = perfiles.filter(
+            Q(user__username__icontains=query) |
+            Q(user__email__icontains=query)
         )
 
     if rol:
-        usuarios = usuarios.filter(groups__name=rol)
+        perfiles = perfiles.filter(rol=rol)
 
-    usuarios = usuarios.distinct()
+    # 🔥 AGREGAMOS ESTADO ONLINE
+    for p in perfiles:
+        p.online = usuario_online(p)
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return render(request, "partials/tabla_usuarios.html", {
-            "usuarios": usuarios
+            "perfiles": perfiles
         })
 
     return render(request, "admin/usuarios.html", {
-        "usuarios": usuarios,
-        "total_usuarios": User.objects.count(),
-        "total_vendedores": User.objects.filter(groups__name="Vendedor").count(),
-        "total_admins": User.objects.filter(groups__name="Administrador").count(),
+        "perfiles": perfiles,
+        "total_usuarios": Perfil.objects.count(),
+        "total_vendedores": Perfil.objects.filter(rol="Vendedor").count(),
+        "total_admins": Perfil.objects.filter(rol="Administrador").count(),
     })
-
 
 # =====================================
 # COMUNIDAD Y PUBLICACIONES

@@ -203,20 +203,6 @@ function fetchUsers() {
 searchInput.addEventListener("keyup", fetchUsers);
 rolFilter.addEventListener("change", fetchUsers);
 
-/* 🔥 ESTADO ONLINE SIMULADO */
-function randomStatus() {
-    return Math.random() > 0.5 ? "online" : "offline";
-}
-
-function applyStatus() {
-    document.querySelectorAll(".status").forEach(el => {
-        const state = randomStatus();
-        el.innerText = state;
-        el.classList.add(state);
-    });
-}
-
-applyStatus();
 
 </script>
 
