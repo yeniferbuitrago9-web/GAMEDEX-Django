@@ -22,8 +22,21 @@
 </td>
 
 <td>
-<a href="{% url 'editar_producto' producto.id %}">Editar</a> |
-<a href="{% url 'toggle_publicacion' producto.id %}">Estado</a>
+    <a href="{% url 'editar_producto' producto.id %}">✏️ Editar</a> |
+
+    <a href="{% url 'toggle_publicacion' producto.id %}">
+        {% if producto.publicado %}
+            📥 Ocultar
+        {% else %}
+            📤 Publicar
+        {% endif %}
+    </a> |
+
+    <a href="{% url 'eliminar_producto_vendedor' producto.id %}"
+       onclick="return confirm('¿Está seguro de eliminar este producto? Esta acción no se puede deshacer.')"
+       style="color:#ef4444;">
+        🗑 Eliminar
+    </a>
 </td>
 
 </tr>

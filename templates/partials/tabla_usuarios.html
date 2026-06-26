@@ -4,36 +4,27 @@
             <th>Usuario</th>
             <th>Email</th>
             <th>Rol</th>
-            <th>Estado</th>
-            <th>Acción</th>
+            <th>Acciones</th>
         </tr>
     </thead>
-
     <tbody>
-    {% for usuario in usuarios %}
+    {% for perfil in perfiles %}
         <tr>
-            <td>{{ usuario.username }}</td>
-            <td>{{ usuario.email }}</td>
-
+            <td>{{ perfil.user.username }}</td>
+            <td>{{ perfil.user.email }}</td>
+            <td><span class="badge">{{ perfil.rol }}</span></td>
             <td>
-                {% for grupo in usuario.groups.all %}
-                    <span class="badge">{{ grupo.name }}</span>
-                {% empty %}
-                    <span class="badge">Sin rol</span>
-                {% endfor %}
-            </td>
-
-            <td class="status">...</td>
-
-            <td>
-                <a href="{% url 'editar_usuario' usuario.id %}" class="btn warning">
-                    Editar
+                <a href="{% url 'editar_usuario' perfil.user.id %}" class="btn warning">Editar</a>
+                <a href="{% url 'eliminar_usuario' perfil.user.id %}"
+                   class="btn danger"
+                   onclick="return confirm('¿Seguro que quieres eliminar a {{ perfil.user.username }}? Esta acción no se puede deshacer.')">
+                   Eliminar
                 </a>
             </td>
         </tr>
     {% empty %}
         <tr>
-            <td colspan="5">No hay usuarios</td>
+            <td colspan="4">No hay usuarios</td>
         </tr>
     {% endfor %}
     </tbody>

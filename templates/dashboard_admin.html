@@ -114,20 +114,21 @@ tbody tr:hover { background:#475569; }
             <h2>Gestión de Usuarios</h2>
             <div>
                 <a href="{% url 'crear_usuario' %}" class="btn primary">+ Nuevo</a>
-                <a href="{% url 'exportar_pdf_usuarios' %}" class="btn danger">PDF</a>
-                <a href="{% url 'exportar_excel_usuarios' %}" class="btn success">Excel</a>
+                <a href="#" id="btn-pdf" class="btn danger">PDF</a>
+                <a href="#" id="btn-excel" class="btn success">Excel</a>
             </div>
         </div>
 
         <!-- FILTERS -->
         <div class="filters">
-            <input type="text" id="search" placeholder="Buscar usuario o email...">
-            
+            <input type="text" id="search" placeholder="Buscar usuario o email..." autocomplete="off">
             <select id="rolFilter">
                 <option value="">Todos los roles</option>
                 <option value="Administrador">Administrador</option>
                 <option value="Vendedor">Vendedor</option>
+                <option value="Usuario">Usuario</option>
             </select>
+            <button onclick="limpiarFiltros()" class="btn" style="background:#475569;border:none;cursor:pointer;color:white;">🧹 Limpiar</button>
         </div>
 
         <!-- TABLE -->
@@ -188,17 +189,28 @@ function fetchUsers() {
     const query = searchInput.value;
     const rol = rolFilter.value;
 
-    fetch(`?q=${query}&rol=${rol}`, {
-        headers: {
-            "X-Requested-With": "XMLHttpRequest"
-        }
+    // Actualizar links de exportar con filtros actuales
+    document.getElementById("btn-pdf").href = `/exportar-pdf-usuarios/?q=${query}&rol=${rol}`;
+    document.getElementById("btn-excel").href = `/exportar-excel-usuarios/?q=${query}&rol=${rol}`;
+
+    fetch(`/gestionar-usuarios/?q=${query}&rol=${rol}`, {
+        headers: { "X-Requested-With": "XMLHttpRequest" }
     })
     .then(res => res.text())
     .then(html => {
         document.getElementById("table-container").innerHTML = html;
-        showToast("Lista actualizada 🔄");
     });
 }
+
+function limpiarFiltros() {
+    searchInput.value = "";
+    rolFilter.value = "";
+    fetchUsers();
+}
+
+// Inicializar links de exportar
+document.getElementById("btn-pdf").href = `/exportar-pdf-usuarios/`;
+document.getElementById("btn-excel").href = `/exportar-excel-usuarios/`;
 
 searchInput.addEventListener("keyup", fetchUsers);
 rolFilter.addEventListener("change", fetchUsers);

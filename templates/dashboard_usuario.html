@@ -267,6 +267,7 @@ input[type="number"]{
 <p class="precio">$ {{ producto.precio }}</p>
 
 <p class="stock">Stock: {{ producto.cantidad }}</p>
+<p style="font-size:12px; color:#94a3b8; margin-top:4px;">🏪 Vendedor: <span style="color:#00f7ff;">{{ producto.vendedor.username }}</span></p>
 
 <form action="{% url 'agregar_carrito' producto.id %}" method="POST">
 {% csrf_token %}

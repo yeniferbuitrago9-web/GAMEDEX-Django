@@ -2,105 +2,36 @@
 <html>
 <head>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            color: #333;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .logo {
-            width: 80px;
-            margin-bottom: 10px;
-        }
-
-        .titulo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #122A54;
-        }
-
-        .subtitulo {
-            font-size: 16px;
-            margin-top: 5px;
-            color: #555;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th {
-            background-color: #122A54;
-            color: white;
-            padding: 10px;
-            font-size: 14px;
-        }
-
-        td {
-            padding: 8px;
-            font-size: 12px;
-            border-bottom: 1px solid #ccc;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        .footer {
-            margin-top: 20px;
-            text-align: right;
-            font-size: 10px;
-            color: #888;
-        }
+        body { font-family: Arial, sans-serif; color: #333; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .titulo { font-size: 24px; font-weight: bold; color: #122A54; }
+        .subtitulo { font-size: 16px; margin-top: 5px; color: #555; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #122A54; color: white; padding: 10px; font-size: 14px; }
+        td { padding: 8px; font-size: 12px; border-bottom: 1px solid #ccc; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .footer { margin-top: 20px; text-align: right; font-size: 10px; color: #888; }
     </style>
 </head>
-
 <body>
-
-    <!-- HEADER -->
     <div class="header">
-
-        <!-- 🔥 CAMBIA LA RUTA DEL LOGO -->
-        <img src="{{ STATIC_URL }}imagenes/logo.png" class="logo">
-
         <div class="titulo">GAMEDEX</div>
         <div class="subtitulo">Listado de Usuarios</div>
-
     </div>
-
-    <!-- TABLA -->
     <table>
         <tr>
             <th>Usuario</th>
             <th>Email</th>
             <th>Rol</th>
         </tr>
-
-        {% for usuario in usuarios %}
+        {% for perfil in perfiles %}
         <tr>
-            <td>{{ usuario.username }}</td>
-            <td>{{ usuario.email }}</td>
-            <td>
-                {% for grupo in usuario.groups.all %}
-                    {{ grupo.name }}
-                {% empty %}
-                    Sin rol
-                {% endfor %}
-            </td>
+            <td>{{ perfil.user.username }}</td>
+            <td>{{ perfil.user.email }}</td>
+            <td>{{ perfil.rol }}</td>
         </tr>
         {% endfor %}
     </table>
-
-    <!-- FOOTER -->
-    <div class="footer">
-        Generado automáticamente por GAMEDEX
-    </div>
-
+    <div class="footer">Generado automáticamente por GAMEDEX</div>
 </body>
 </html>

@@ -153,6 +153,8 @@ input:focus, textarea:focus{
 
 <h2>Editar Producto</h2>
 
+
+
 <form method="POST" enctype="multipart/form-data">
 
 {% csrf_token %}
@@ -165,19 +167,41 @@ input:focus, textarea:focus{
 </div>
 
 <label>Nombre</label>
-<input type="text" name="nombre" value="{{ producto.nombre }}">
+<input
+    type="text"
+    name="nombre"
+    value="{{ producto.nombre }}"
+    required>
 
 <label>Descripción</label>
-<textarea name="descripcion">{{ producto.descripcion }}</textarea>
+<textarea
+    name="descripcion"
+    required>{{ producto.descripcion }}</textarea>
 
 <label>Precio</label>
-<input type="number" name="precio" value="{{ producto.precio }}">
+<input
+    type="number"
+    name="precio"
+    value="{{ producto.precio }}"
+    min="0"
+    step="0.01"
+    required>
 
 <label>Cantidad</label>
-<input type="number" name="cantidad" value="{{ producto.cantidad }}">
+<input
+    type="number"
+    name="cantidad"
+    value="{{ producto.cantidad }}"
+    min="1"
+    required>
 
 <label>Días de garantía</label>
-<input type="number" name="dias_garantia" value="{{ producto.dias_garantia }}">
+<input
+    type="number"
+    name="dias_garantia"
+    value="{{ producto.dias_garantia }}"
+    min="0"
+    required>
 
 <label>Imagen</label>
 <input type="file" name="imagen" id="imagenInput">

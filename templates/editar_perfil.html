@@ -134,22 +134,41 @@ body{
 
             <div class="form-group">
                 <label>Usuario</label>
-                <input type="text" name="username" value="{{ user.username }}">
+                <input
+    type="text"
+    name="username"
+    value="{{ user.username }}"
+    required
+    maxlength="150">
+                
             </div>
 
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" name="email" value="{{ user.email }}">
+                <input type="email" name="email" value="{{ user.email }}" required>
             </div>
 
             <div class="form-group">
                 <label>Teléfono</label>
-                <input type="text" name="telefono" value="{{ perfil.telefono|default:'' }}">
+                <input
+    type="tel"
+    name="telefono"
+    value="{{ perfil.telefono|default:'' }}"
+    required
+    maxlength="10"
+    pattern="[0-9]{10}"
+    inputmode="numeric"
+    oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
             </div>
 
             <div class="form-group">
                 <label>Dirección</label>
-                <input type="text" name="direccion" value="{{ perfil.direccion|default:'' }}">
+                <input type="text" name="direccion" value="{{ perfil.direccion|default:'' }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Nueva contraseña <span style="color:#aaa;font-weight:normal;">(dejar vacío para no cambiar)</span></label>
+                <input type="password" name="password" placeholder="Nueva contraseña">
             </div>
 
             <button type="submit" class="btn btn-guardar">

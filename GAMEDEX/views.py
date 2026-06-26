@@ -119,10 +119,19 @@ def registro_publico(request):
             # Asignar grupo según elección de tu select
             if rol == "Vendedor":
                 grupo, _ = Group.objects.get_or_create(name="Vendedor")
+                rol_perfil = "Vendedor"
             else:
                 grupo, _ = Group.objects.get_or_create(name="Cliente")
+                rol_perfil = "Cliente"
 
             user.groups.add(grupo)
+
+            # Sincronizar el rol en el perfil (el signal lo crea con 'Usuario' por defecto)
+            try:
+                user.perfil.rol = rol_perfil
+                user.perfil.save()
+            except Exception:
+                pass
 
             messages.success(request, "¡Cuenta creada correctamente! Ya puedes iniciar sesión.")
             return redirect("login")
@@ -161,13 +170,15 @@ def agregar_carrito(request, producto_id):
 
     carrito = request.session.get("carrito", {})
 
+    cantidad = int(request.POST.get("cantidad", 1))
+
     if str(producto_id) in carrito:
-        carrito[str(producto_id)]["cantidad"] += 1
+        carrito[str(producto_id)]["cantidad"] += cantidad
     else:
         carrito[str(producto_id)] = {
             "nombre": producto.nombre,
             "precio": float(producto.precio),
-            "cantidad": 1
+            "cantidad": cantidad
         }
 
     request.session["carrito"] = carrito
@@ -371,13 +382,17 @@ def editar_perfil_usuario(request):
         perfil.telefono = request.POST.get('telefono')
         perfil.direccion = request.POST.get('direccion')
 
+        nueva_password = request.POST.get('password', '').strip()
+        if nueva_password:
+            user.set_password(nueva_password)
+
         user.save()
         perfil.save()
 
-        update_session_auth_hash(request, user) 
+        update_session_auth_hash(request, user)
 
         messages.success(request, "Perfil actualizado correctamente")
-        return redirect('dashboard_usuario') 
+        return redirect('dashboard_usuario')
 
     return render(request, 'editar_perfil.html', {
         'user': user,
@@ -438,26 +453,15 @@ def dashboard_admin(request):
         messages.error(request, "No tienes permisos.")
         return redirect("redireccion_dashboard")
 
-    query = request.GET.get("q")
-    usuarios_list = User.objects.all()
+    perfiles = Perfil.objects.select_related("user").all().order_by("user__username")
 
-    if query:
-        usuarios_list = usuarios_list.filter(
-            Q(username__icontains=query) |
-            Q(email__icontains=query)
-        )
-
-    paginator = Paginator(usuarios_list.order_by("username"), 5)
-    usuarios = paginator.get_page(request.GET.get("page"))
-
-    # 🔥 CONTADORES
-    total_usuarios = User.objects.count()
-    total_vendedores = User.objects.filter(groups__name="Vendedor").count()
-    total_admins = User.objects.filter(groups__name="Administrador").count()
+    # CONTADORES usando Perfil.rol (fuente única de verdad)
+    total_usuarios = Perfil.objects.count()
+    total_vendedores = Perfil.objects.filter(rol="Vendedor").count()
+    total_admins = Perfil.objects.filter(rol="Administrador").count()
 
     return render(request, "dashboard_admin.html", {
-        "usuarios": usuarios,
-        "query": query,
+        "perfiles": perfiles,
         "total_usuarios": total_usuarios,
         "total_vendedores": total_vendedores,
         "total_admins": total_admins
@@ -879,10 +883,20 @@ def editar_usuario(request, user_id):
 # exportar pdf de usuarios (ADMIN)
 # =====================================
 def exportar_pdf_usuarios(request):
-    usuarios = User.objects.all()
+    query = request.GET.get("q", "")
+    rol = request.GET.get("rol", "")
+
+    perfiles = Perfil.objects.select_related("user").all()
+    if query:
+        perfiles = perfiles.filter(
+            Q(user__username__icontains=query) |
+            Q(user__email__icontains=query)
+        )
+    if rol:
+        perfiles = perfiles.filter(rol=rol)
 
     template = get_template("pdf_usuarios.html")
-    html = template.render({"usuarios": usuarios})
+    html = template.render({"perfiles": perfiles})
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="usuarios.pdf"'
@@ -895,21 +909,29 @@ def exportar_pdf_usuarios(request):
 # exportar excel de usuarios (ADMIN)
 # =====================================
 def exportar_excel_usuarios(request):
-    usuarios = User.objects.all()
+    query = request.GET.get("q", "")
+    rol = request.GET.get("rol", "")
+
+    perfiles = Perfil.objects.select_related("user").all()
+    if query:
+        perfiles = perfiles.filter(
+            Q(user__username__icontains=query) |
+            Q(user__email__icontains=query)
+        )
+    if rol:
+        perfiles = perfiles.filter(rol=rol)
 
     wb = Workbook()
     ws = wb.active
     ws.title = "Usuarios"
 
-    # Encabezados
     ws.append(["Usuario", "Email", "Rol"])
 
-    for usuario in usuarios:
-        roles = ", ".join([g.name for g in usuario.groups.all()])
+    for perfil in perfiles:
         ws.append([
-            usuario.username,
-            usuario.email,
-            roles if roles else "Sin rol"
+            perfil.user.username,
+            perfil.user.email,
+            perfil.rol
         ])
 
     response = HttpResponse(
@@ -921,6 +943,26 @@ def exportar_excel_usuarios(request):
 
     return response
 
+
+
+# =====================================
+# ELIMINAR USUARIO (ADMIN)
+# =====================================
+@login_required
+def eliminar_usuario(request, user_id):
+    if not request.user.groups.filter(name="Administrador").exists():
+        messages.error(request, "No tienes permisos.")
+        return redirect("dashboard_admin")
+
+    usuario = get_object_or_404(User, id=user_id)
+
+    if usuario == request.user:
+        messages.error(request, "No puedes eliminarte a ti mismo.")
+        return redirect("dashboard_admin")
+
+    usuario.delete()
+    messages.success(request, f"Usuario eliminado correctamente.")
+    return redirect("dashboard_admin")
 
 # =====================================
 # DASHBOARD VENDEDOR
@@ -1035,6 +1077,7 @@ def exportar_excel_vendedor(request):
 # CREAR PRODUCTO
 # =====================================
 @login_required
+
 def crear_producto(request):
 
     if request.method == "POST":
@@ -1052,6 +1095,10 @@ def crear_producto(request):
             imagen=imagen,
             vendedor=request.user
         )
+
+        if not nombre or not descripcion or not precio or not cantidad or not imagen:
+          messages.error(request, "Todos los campos son obligatorios.")
+        return redirect("crear_producto")
 
         messages.success(request, "Producto creado correctamente.")
         return redirect("dashboard_vendedor")
@@ -1078,26 +1125,48 @@ def toggle_destacado(request, producto_id):
 @login_required
 def editar_producto(request, producto_id):
     producto = get_object_or_404(Producto, id=producto_id)
-    
-    # 🔐 Seguridad: solo el dueño puede editar
+
+    # Solo el dueño puede editar
     if producto.vendedor != request.user:
         return HttpResponseForbidden("No tienes permiso.")
 
     if request.method == "POST":
-        producto.nombre = request.POST.get("nombre")
-        producto.descripcion = request.POST.get("descripcion")
-        # Conversión explícita para evitar errores de tipo
-        producto.precio = float(request.POST.get("precio", 0))
-        producto.cantidad = int(request.POST.get("cantidad", 0))
+
+        nombre = request.POST.get("nombre", "").strip()
+        descripcion = request.POST.get("descripcion", "").strip()
+        precio = request.POST.get("precio", "").strip()
+        cantidad = request.POST.get("cantidad", "").strip()
+
+        # Validar campos obligatorios
+        if not nombre or not descripcion or not precio or not cantidad:
+            messages.error(request, "Todos los campos son obligatorios excepto la imagen.")
+            return render(request, "editar_producto.html", {
+                "producto": producto
+            })
+
+        producto.nombre = nombre
+        producto.descripcion = descripcion
+
+        try:
+            producto.precio = float(precio)
+            producto.cantidad = int(cantidad)
+        except ValueError:
+            messages.error(request, "Precio y cantidad deben ser números válidos.")
+            return render(request, "editar_producto.html", {
+                "producto": producto
+            })
 
         if request.FILES.get("imagen"):
             producto.imagen = request.FILES.get("imagen")
 
         producto.save()
-        messages.success(request, "Producto actualizado.")
+
+        messages.success(request, "Producto actualizado correctamente.")
         return redirect("dashboard_vendedor")
 
-    return render(request, "editar_producto.html", {"producto": producto})
+    return render(request, "editar_producto.html", {
+        "producto": producto
+    })
 
 # =====================================
 # ELIMINAR PRODUCTO

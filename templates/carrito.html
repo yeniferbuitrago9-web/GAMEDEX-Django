@@ -236,7 +236,9 @@ body{
 ➖ Quitar
 </a>
 
-<a href="{% url 'eliminar_producto' item.producto.id %}" class="btn btn-eliminar">
+<a href="{% url 'eliminar_producto' item.producto.id %}"
+   class="btn btn-eliminar"
+   onclick="return confirm('¿Está seguro de eliminar este producto del carrito?')">
 ❌ Eliminar
 </a>
 

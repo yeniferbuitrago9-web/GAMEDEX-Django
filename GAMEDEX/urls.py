@@ -100,6 +100,8 @@ urlpatterns = [
     path('admin/gestionar-productos/', views.gestionar_productos_admin, name='gestionar_productos_admin'),
     path('admin/editar-producto/<int:id>/', views.admin_editar_producto, name='admin_editar_producto'),
     path('admin/eliminar-producto/<int:id>/', views.admin_eliminar_producto, name='admin_eliminar_producto'),
+    path('gestionar-usuarios/', views.lista_usuarios, name='lista_usuarios'),
+    path('eliminar-usuario/<int:user_id>/', views.eliminar_usuario, name='eliminar_usuario'),
 ]
 
 
