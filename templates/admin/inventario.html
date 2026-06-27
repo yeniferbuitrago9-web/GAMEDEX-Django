@@ -135,17 +135,18 @@ body {
     </select>
 
     <button type="submit" class="btn btn-buscar">Buscar</button>
+    <a href="{% url 'inventario_admin' %}" class="btn" style="background:#475569;color:white;padding:8px 14px;border-radius:5px;text-decoration:none;font-weight:bold;">🧹 Limpiar</a>
 
 </form>
 
 <!-- 📥 EXPORTAR -->
 <div class="filtros">
 
-    <a href="{% url 'exportar_pdf_inventario' %}" class="btn btn-pdf">
+    <a href="{% url 'exportar_pdf_inventario' %}?q={{ query|default:"" }}&filtro={{ filtro|default:"" }}" class="btn btn-pdf">
         Exportar PDF
     </a>
 
-    <a href="{% url 'exportar_excel_inventario' %}" class="btn btn-excel">
+    <a href="{% url 'exportar_excel_inventario' %}?q={{ query|default:'' }}&filtro={{ filtro|default:'' }}" class="btn btn-excel">
         Exportar Excel
     </a>
 
@@ -207,8 +208,8 @@ body {
 <div class="paginacion">
 
     {% if productos.has_previous %}
-        <a href="?page=1&q={{ query }}&filtro={{ filtro }}">⏮</a>
-        <a href="?page={{ productos.previous_page_number }}&q={{ query }}&filtro={{ filtro }}">◀</a>
+        <a href="?page=1&q={{ query|default:"" }}&filtro={{ filtro|default:"" }}">⏮</a>
+        <a href="?page={{ productos.previous_page_number }}&q={{ query|default:"" }}&filtro={{ filtro|default:"" }}">◀</a>
     {% endif %}
 
     <span>
@@ -216,8 +217,8 @@ body {
     </span>
 
     {% if productos.has_next %}
-        <a href="?page={{ productos.next_page_number }}&q={{ query }}&filtro={{ filtro }}">▶</a>
-        <a href="?page={{ productos.paginator.num_pages }}&q={{ query }}&filtro={{ filtro }}">⏭</a>
+        <a href="?page={{ productos.next_page_number }}&q={{ query|default:"" }}&filtro={{ filtro|default:"" }}">▶</a>
+        <a href="?page={{ productos.paginator.num_pages }}&q={{ query|default:"" }}&filtro={{ filtro|default:"" }}">⏭</a>
     {% endif %}
 
 </div>

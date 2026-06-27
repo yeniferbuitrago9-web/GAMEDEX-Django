@@ -1,4 +1,5 @@
 # Módulo principal de vistas para GAMEDEX (usuarios, carrito, productos, facturación)
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
@@ -150,7 +151,20 @@ def dashboard_usuario(request):
 
     productos = Producto.objects.filter(publicado=True)
 
-    carrito = request.session.get("carrito", {})
+    clave = get_carrito_key(request)
+    carrito = request.session.get(clave, {})
+
+    # Si la sesión está vacía pero hay carrito guardado en BD, restaurarlo
+    if not carrito:
+        try:
+            guardado = request.user.perfil.carrito_guardado
+            if guardado and guardado != "{}":
+                carrito = json.loads(guardado)
+                request.session[clave] = carrito
+                request.session.modified = True
+        except Exception:
+            pass
+
     total_carrito = sum(item["cantidad"] for item in carrito.values())
 
 
@@ -163,14 +177,26 @@ def dashboard_usuario(request):
 # =====================================
 # CARRITO
 # =====================================
+def get_carrito_key(request):
+    """Clave de sesión única por usuario para que el carrito persista entre sesiones."""
+    if request.user.is_authenticated:
+        return f"carrito_{request.user.id}"
+    return "carrito"
+
 @login_required
 def agregar_carrito(request, producto_id):
 
     producto = get_object_or_404(Producto, id=producto_id)
 
-    carrito = request.session.get("carrito", {})
+    try:
+        cantidad = int(request.POST.get("cantidad", 1))
+        if cantidad < 1:
+            cantidad = 1
+    except (ValueError, TypeError):
+        cantidad = 1
 
-    cantidad = int(request.POST.get("cantidad", 1))
+    clave = get_carrito_key(request)
+    carrito = request.session.get(clave, {})
 
     if str(producto_id) in carrito:
         carrito[str(producto_id)]["cantidad"] += cantidad
@@ -181,14 +207,19 @@ def agregar_carrito(request, producto_id):
             "cantidad": cantidad
         }
 
-    request.session["carrito"] = carrito
+    # No superar el stock disponible
+    if carrito[str(producto_id)]["cantidad"] > producto.cantidad:
+        carrito[str(producto_id)]["cantidad"] = producto.cantidad
+
+    request.session[clave] = carrito
     request.session.modified = True
 
     return redirect("dashboard_usuario")
 
 def ver_carrito(request):
 
-    carrito = request.session.get("carrito", {})
+    clave = get_carrito_key(request)
+    carrito = request.session.get(clave, {})
     productos_carrito = []
     total = 0
     hubo_cambios = False
@@ -216,7 +247,7 @@ def ver_carrito(request):
         })
 
     if hubo_cambios:
-        request.session["carrito"] = carrito
+        request.session[clave] = carrito
         request.session.modified = True
 
     return render(request, "carrito.html", {
@@ -227,7 +258,8 @@ def ver_carrito(request):
 
 def quitar_unidad(request, producto_id):
 
-    carrito = request.session.get("carrito", {})
+    clave = get_carrito_key(request)
+    carrito = request.session.get(clave, {})
 
     if str(producto_id) in carrito:
         carrito[str(producto_id)]["cantidad"] -= 1
@@ -235,19 +267,20 @@ def quitar_unidad(request, producto_id):
         if carrito[str(producto_id)]["cantidad"] <= 0:
             del carrito[str(producto_id)]
 
-    request.session["carrito"] = carrito
+    request.session[clave] = carrito
     request.session.modified = True
 
     return redirect("ver_carrito")
 
 def eliminar_producto(request, producto_id):
 
-    carrito = request.session.get("carrito", {})
+    clave = get_carrito_key(request)
+    carrito = request.session.get(clave, {})
 
     if str(producto_id) in carrito:
         del carrito[str(producto_id)]
 
-    request.session["carrito"] = carrito
+    request.session[clave] = carrito
     request.session.modified = True
 
     return redirect("ver_carrito")
@@ -259,7 +292,8 @@ def eliminar_producto(request, producto_id):
 
 def comprar_carrito(request):
 
-    carrito = request.session.get("carrito", {})
+    clave = get_carrito_key(request)
+    carrito = request.session.get(clave, {})
 
     if not carrito:
         messages.error(request, "El carrito está vacío.")
@@ -300,7 +334,7 @@ def comprar_carrito(request):
         "total": total
     }
 
-    request.session["carrito"] = {}
+    request.session[get_carrito_key(request)] = {}
 
     request.session.modified = True
     request.session.save()
@@ -316,7 +350,7 @@ def comprar_carrito(request):
     }
 
     # limpiar carrito
-    request.session["carrito"] = {}
+    request.session[get_carrito_key(request)] = {}
 
     # 🔥 FORZAR GUARDADO REAL EN SESIÓN
     request.session.modified = True
@@ -453,9 +487,22 @@ def dashboard_admin(request):
         messages.error(request, "No tienes permisos.")
         return redirect("redireccion_dashboard")
 
+    # Crear perfiles faltantes para usuarios que no tienen uno
+    for user in User.objects.all():
+        perfil, created = Perfil.objects.get_or_create(user=user)
+        if created:
+            # Asignar rol según su grupo
+            if user.groups.filter(name="Administrador").exists():
+                perfil.rol = "Administrador"
+            elif user.groups.filter(name="Vendedor").exists():
+                perfil.rol = "Vendedor"
+            else:
+                perfil.rol = "Usuario"
+            perfil.save()
+
     perfiles = Perfil.objects.select_related("user").all().order_by("user__username")
 
-    # CONTADORES usando Perfil.rol (fuente única de verdad)
+    # CONTADORES
     total_usuarios = Perfil.objects.count()
     total_vendedores = Perfil.objects.filter(rol="Vendedor").count()
     total_admins = Perfil.objects.filter(rol="Administrador").count()
@@ -702,8 +749,8 @@ def eliminar_comunidad(request, id):
 def inventario_admin(request):
     productos = Producto.objects.all()
 
-    query = request.GET.get("q")
-    filtro = request.GET.get("filtro")
+    query = request.GET.get("q", "")
+    filtro = request.GET.get("filtro", "")
 
     # 🔎 BUSCADOR
     if query:
@@ -735,14 +782,20 @@ def inventario_admin(request):
 #=======================================
 @login_required
 def exportar_pdf_inventario(request):
+    q = request.GET.get("q", "")
+    filtro = request.GET.get("filtro", "")
     productos = Producto.objects.all()
+    if q:
+        productos = productos.filter(Q(nombre__icontains=q) | Q(descripcion__icontains=q))
+    if filtro == "stock_bajo":
+        productos = productos.filter(cantidad__lt=5, cantidad__gt=0)
+    elif filtro == "sin_stock":
+        productos = productos.filter(cantidad=0)
 
     template = get_template("pdf_inventario.html")
     html = template.render({"productos": productos})
-
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="inventario.pdf"'
-
     pisa.CreatePDF(html, dest=response)
     return response
 
@@ -751,7 +804,15 @@ def exportar_pdf_inventario(request):
 #=======================================
 @login_required
 def exportar_excel_inventario(request):
+    q = request.GET.get("q", "")
+    filtro = request.GET.get("filtro", "")
     productos = Producto.objects.all()
+    if q:
+        productos = productos.filter(Q(nombre__icontains=q) | Q(descripcion__icontains=q))
+    if filtro == "stock_bajo":
+        productos = productos.filter(cantidad__lt=5, cantidad__gt=0)
+    elif filtro == "sin_stock":
+        productos = productos.filter(cantidad=0)
 
     wb = Workbook()
     ws = wb.active
@@ -869,6 +930,13 @@ def editar_usuario(request, user_id):
         usuario.groups.clear()
         grupo, _ = Group.objects.get_or_create(name=rol)
         usuario.groups.add(grupo)
+
+        # Sincronizar Perfil.rol con el grupo asignado
+        try:
+            usuario.perfil.rol = rol
+            usuario.perfil.save()
+        except Exception:
+            pass
 
         messages.success(request, "Usuario actualizado correctamente.")
         return redirect("dashboard_admin")
@@ -1019,23 +1087,17 @@ def dashboard_vendedor(request):
 @login_required
 def exportar_pdf_vendedor(request):
 
-    productos = Producto.objects.filter(
-        vendedor=request.user,
-        publicado=True
-    )
+    q = request.GET.get("q", "")
+    productos = Producto.objects.filter(vendedor=request.user)
+    if q:
+        productos = productos.filter(nombre__icontains=q)
 
     template = get_template("pdf_productos.html")
-
-    html = template.render({
-        "productos": productos,
-        "usuario": request.user
-    })
+    html = template.render({"productos": productos, "usuario": request.user})
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="productos.pdf"'
-
     pisa.CreatePDF(html, dest=response)
-
     return response
 from openpyxl import Workbook
 
@@ -1046,29 +1108,24 @@ from openpyxl import Workbook
 @login_required
 def exportar_excel_vendedor(request):
 
-    productos = Producto.objects.filter(
-        vendedor=request.user,
-        publicado=True
-    )
+    q = request.GET.get("q", "")
+    productos = Producto.objects.filter(vendedor=request.user)
+    if q:
+        productos = productos.filter(nombre__icontains=q)
 
     wb = Workbook()
     ws = wb.active
     ws.title = "Productos"
 
-    # encabezados
-    ws.append(["Nombre", "Precio", "cantidad"])
-
-    # datos
+    ws.append(["Nombre", "Precio", "Cantidad", "Publicado"])
     for p in productos:
-        ws.append([p.nombre, float(p.precio), p.cantidad])
+        ws.append([p.nombre, float(p.precio), p.cantidad, "Sí" if p.publicado else "No"])
 
     response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-    response['Content-Disposition'] = 'attachment; filename=productos.xlsx'
-
+    response["Content-Disposition"] = "attachment; filename=productos.xlsx"
     wb.save(response)
-
     return response
 
 
@@ -1081,11 +1138,15 @@ def exportar_excel_vendedor(request):
 def crear_producto(request):
 
     if request.method == "POST":
-        nombre = request.POST.get("nombre")
-        descripcion = request.POST.get("descripcion")
-        precio = request.POST.get("precio")
-        cantidad = request.POST.get("cantidad")
+        nombre = request.POST.get("nombre", "").strip()
+        descripcion = request.POST.get("descripcion", "").strip()
+        precio = request.POST.get("precio", "").strip()
+        cantidad = request.POST.get("cantidad", "").strip()
         imagen = request.FILES.get("imagen")
+
+        if not nombre or not descripcion or not precio or not cantidad or not imagen:
+            messages.error(request, "Todos los campos son obligatorios, incluyendo la imagen.")
+            return redirect("crear_producto")
 
         Producto.objects.create(
             nombre=nombre,
@@ -1096,9 +1157,8 @@ def crear_producto(request):
             vendedor=request.user
         )
 
-        if not nombre or not descripcion or not precio or not cantidad or not imagen:
-          messages.error(request, "Todos los campos son obligatorios.")
-        return redirect("crear_producto")
+        messages.success(request, f"✅ Producto '{nombre}' creado correctamente.")
+        return redirect("dashboard_vendedor")
 
         messages.success(request, "Producto creado correctamente.")
         return redirect("dashboard_vendedor")
@@ -1226,6 +1286,15 @@ def redireccion_dashboard(request):
 # =====================================
 @login_required
 def cerrar_sesion(request):
+    # Guardar carrito en la base de datos antes de cerrar sesión
+    if request.user.is_authenticated:
+        try:
+            clave = get_carrito_key(request)
+            carrito = request.session.get(clave, {})
+            request.user.perfil.carrito_guardado = json.dumps(carrito)
+            request.user.perfil.save()
+        except Exception:
+            pass
     logout(request)
     return redirect("login")
 

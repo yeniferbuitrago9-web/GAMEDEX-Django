@@ -212,13 +212,14 @@ tr:hover{
 <!-- BOTONES -->
 <div style="margin-bottom:20px;">
     <a href="{% url 'crear_producto' %}" class="btn primary">+ Crear</a>
-    <a href="{% url 'exportar_pdf_vendedor' %}" class="btn warning">PDF</a>
-    <a href="{% url 'exportar_excel_vendedor' %}" class="btn success">Excel</a>
+    <a href="{% url 'exportar_pdf_vendedor' %}" id="btn-pdf-v" class="btn warning">PDF</a>
+    <a href="{% url 'exportar_excel_vendedor' %}" id="btn-excel-v" class="btn success">Excel</a>
 </div>
 
 <!-- FILTRO -->
 <div class="filters">
-    <input type="text" id="search" placeholder="Buscar producto...">
+    <input type="text" id="search" placeholder="Buscar producto..." autocomplete="off">
+    <button type="button" onclick="limpiarBusqueda()" class="btn" style="background:#475569;border:none;cursor:pointer;color:white;padding:8px 14px;border-radius:8px;margin-left:8px;">🧹 Limpiar</button>
 </div>
 
 <!-- TABLA -->
@@ -230,13 +231,57 @@ tr:hover{
 
 <div id="toast">Actualizado 🚀</div>
 
+{% if messages %}
+<div style="position:fixed;top:20px;right:20px;z-index:9999;min-width:280px;">
+    {% for message in messages %}
+    <div class="msg-flash" style="
+        padding:14px 20px;
+        border-radius:10px;
+        margin-bottom:10px;
+        font-weight:bold;
+        transition: opacity 0.5s ease;
+        {% if message.tags == 'success' %}
+            background: rgba(34,197,94,0.15);
+            border: 1px solid #22c55e;
+            color: #22c55e;
+        {% else %}
+            background: rgba(239,68,68,0.15);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        {% endif %}
+    ">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+<script>
+setTimeout(() => {
+    document.querySelectorAll('.msg-flash').forEach(el => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 500);
+    });
+}, 4000);
+</script>
+{% endif %}
+
 <script>
 
 /* 🔍 BUSQUEDA AJAX */
 const searchInput = document.getElementById("search");
 
+function limpiarBusqueda() {
+    searchInput.value = "";
+    fetchProductos(1);
+}
+
 function fetchProductos(page=1){
     const query = searchInput.value;
+
+    // Actualizar links exportar con filtro activo
+    const pdfBtn = document.getElementById("btn-pdf-v");
+    const excelBtn = document.getElementById("btn-excel-v");
+    if(pdfBtn) pdfBtn.href = `/exportar-pdf/?q=${query}`;
+    if(excelBtn) excelBtn.href = `/exportar-excel/?q=${query}`;
 
     fetch(`?q=${query}&page=${page}`, {
         headers: {"X-Requested-With": "XMLHttpRequest"}

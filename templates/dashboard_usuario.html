@@ -266,13 +266,19 @@ input[type="number"]{
 
 <p class="precio">$ {{ producto.precio }}</p>
 
-<p class="stock">Stock: {{ producto.cantidad }}</p>
+<p class="stock">Stock: {{ producto.cantidad }}
+    {% if producto.cantidad <= 3 and producto.cantidad > 0 %}
+        <span style="background:#f59e0b;color:#000;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:6px;">⚠️ Últimas unidades</span>
+    {% elif producto.cantidad == 0 %}
+        <span style="background:#ef4444;color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;margin-left:6px;">❌ Sin stock</span>
+    {% endif %}
+</p>
 <p style="font-size:12px; color:#94a3b8; margin-top:4px;">🏪 Vendedor: <span style="color:#00f7ff;">{{ producto.vendedor.username }}</span></p>
 
 <form action="{% url 'agregar_carrito' producto.id %}" method="POST">
 {% csrf_token %}
 
-<input type="number" name="cantidad" value="1" min="1">
+<input type="number" name="cantidad" value="1" min="1" max="{{ producto.cantidad }}">
 
 <button class="btn">
 🛒 Agregar

@@ -181,6 +181,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # settings.py
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_AGE = 86400  # 24 horas - el carrito no se pierde al cerrar el navegador
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
  
 
 ASGI_APPLICATION = "GAMEDEX.asgi.application"

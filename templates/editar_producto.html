@@ -171,6 +171,7 @@ input:focus, textarea:focus{
     type="text"
     name="nombre"
     value="{{ producto.nombre }}"
+    required
     required>
 
 <label>Descripción</label>
@@ -183,6 +184,9 @@ input:focus, textarea:focus{
     type="number"
     name="precio"
     value="{{ producto.precio }}"
+    step="0.01"
+    min="0"
+    required
     min="0"
     step="0.01"
     required>
@@ -192,6 +196,8 @@ input:focus, textarea:focus{
     type="number"
     name="cantidad"
     value="{{ producto.cantidad }}"
+    min="0"
+    required
     min="1"
     required>
 
@@ -200,6 +206,8 @@ input:focus, textarea:focus{
     type="number"
     name="dias_garantia"
     value="{{ producto.dias_garantia }}"
+    min="0"
+    required
     min="0"
     required>
 
@@ -212,6 +220,11 @@ input:focus, textarea:focus{
 
 <a href="{% url 'dashboard_vendedor' %}" class="btn btn-cancelar">
 Cancelar
+</a>
+<a href="{% url 'eliminar_producto_vendedor' producto.id %}"
+   class="btn" style="background:#7f1d1d;color:white;margin-top:10px;display:block;text-align:center;padding:12px;border-radius:8px;text-decoration:none;"
+   onclick="return confirm('¿Seguro que quieres eliminar este producto? No se puede deshacer.')">
+🗑️ Eliminar producto
 </a>
 
 </form>
