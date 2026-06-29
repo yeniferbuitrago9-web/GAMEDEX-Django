@@ -45,8 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'GAMEDEX.apps.GamedexConfig',
     # ... apps por defecto de django ...
+        'django.contrib.staticfiles', 
     'cloudinary_storage', 
-    'django.contrib.staticfiles',  # Asegúrate de que esté debajo de cloudinary_storage
     'cloudinary',
     # ... tus apps propias (como la de tus productos) ...
 ]
@@ -159,7 +159,6 @@ STATICFILES_DIRS = [
 ]
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # -------------------------------------------------
 # AUTH REDIRECTIONS
@@ -176,12 +175,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # -------------------------------------------------
-# MEDIA FILES (imagenes subidas por usuarios)
+# MEDIA FILES & STORAGES (Separación de tareas)
 # -------------------------------------------------
-
-# Esto le dice a Django que use Cloudinary para los archivos que suban los usuarios
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/' 
+
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage", # Cloudinary solo para fotos
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage", # WhiteNoise para CSS/JS
+    },
+}
 
 # settings.py
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
