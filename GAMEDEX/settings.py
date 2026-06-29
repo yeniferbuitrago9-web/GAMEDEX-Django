@@ -38,15 +38,23 @@ ALLOWED_HOSTS = [
 # APPLICATIONS
 # -------------------------------------------------
 INSTALLED_APPS = [
+    # Almacenamiento de Cloudinary (Debe ir ARRIBA de staticfiles)
+    'cloudinary_storage',
+    
+    # Apps core de Django
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    # Librería base de Cloudinary
+    'cloudinary',
+    
+    # Tus aplicaciones del proyecto
     'GAMEDEX.apps.GamedexConfig',
 ]
- 
 
 
 # -------------------------------------------------
@@ -90,10 +98,10 @@ TEMPLATES = [
 
 
 # -------------------------------------------------
-# WSGI
+# WSGI & ASGI
 # -------------------------------------------------
 WSGI_APPLICATION = 'GAMEDEX.wsgi.application'
-
+ASGI_APPLICATION = "GAMEDEX.asgi.application"
 
 
 # -------------------------------------------------
@@ -141,12 +149,11 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'es-co'
 TIME_ZONE = 'UTC'
 USE_TZ = True
-
 USE_I18N = True
 
 
 # -------------------------------------------------
-# STATIC FILES
+# STATIC FILES (Manejados por Whitenoise)
 # -------------------------------------------------
 STATIC_URL = '/static/'
 
@@ -157,6 +164,20 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+
+# -------------------------------------------------
+# MEDIA FILES (Manejados por Cloudinary)
+# -------------------------------------------------
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+MEDIA_URL = '/media/' 
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dxxgxcxjg',
+    'API_KEY': '965342215647166',
+    'API_SECRET': 'N0gwD8oz1VWSAfou7yXHdR9ie5Y',
+}
+
+
 # -------------------------------------------------
 # AUTH REDIRECTIONS
 # ------------------------------------------------- 
@@ -166,29 +187,20 @@ LOGOUT_REDIRECT_URL = '/login/'
 
 
 # -------------------------------------------------
+# SESSIONS
+# -------------------------------------------------
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_AGE = 86400  # 24 horas - el carrito no se pierde al cerrar el navegador
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+
+# -------------------------------------------------
 # DEFAULT PRIMARY KEY
 # -------------------------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# -------------------------------------------------
-# MEDIA FILES (imagenes subidas por usuarios)
-# -------------------------------------------------
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  
-
-# settings.py
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_AGE = 86400  # 24 horas - el carrito no se pierde al cerrar el navegador
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
- 
-
-ASGI_APPLICATION = "GAMEDEX.asgi.application"
-# -------------------------------------------------
-# LOGGING (para ver errores 500 en los logs de Render)
-# -------------------------------------------------
 # -------------------------------------------------
 # LOGGING (Captura detallada para producción)
 # -------------------------------------------------
@@ -201,7 +213,7 @@ LOGGING = {
         },
     },
     'loggers': {
-        'django': {  # Captura el núcleo de Django, incluyendo auth y errores de base de datos
+        'django': {
             'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,
