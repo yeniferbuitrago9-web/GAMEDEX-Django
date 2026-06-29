@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'GAMEDEX.apps.GamedexConfig',
     # ... apps por defecto de django ...
     'cloudinary_storage', 
