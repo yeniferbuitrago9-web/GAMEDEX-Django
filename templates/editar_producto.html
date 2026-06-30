@@ -211,6 +211,16 @@ input:focus, textarea:focus{
     min="0"
     required>
 
+<label>Categoría</label>
+<select name="categoria" style="width:100%; padding:8px; margin-bottom:12px; border-radius:6px; background:#1e1e2e; color:white; border:1px solid #555;">
+    <option value="videojuego" {% if producto.categoria == "videojuego" %}selected{% endif %}>🎮 Videojuego</option>
+    <option value="consola" {% if producto.categoria == "consola" %}selected{% endif %}>🕹️ Consola</option>
+    <option value="accesorio" {% if producto.categoria == "accesorio" %}selected{% endif %}>🎧 Accesorio</option>
+    <option value="periferico" {% if producto.categoria == "periferico" %}selected{% endif %}>⌨️ Periférico</option>
+    <option value="coleccionable" {% if producto.categoria == "coleccionable" %}selected{% endif %}>⭐ Coleccionable</option>
+    <option value="otro" {% if producto.categoria == "otro" %}selected{% endif %}>📦 Otro</option>
+</select>
+
 <label>Imagen</label>
 <input type="file" name="imagen" id="imagenInput">
 

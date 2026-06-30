@@ -149,7 +149,10 @@ def registro_publico(request):
 @never_cache
 def dashboard_usuario(request):
 
+    categoria = request.GET.get("categoria", "")
     productos = Producto.objects.filter(publicado=True)
+    if categoria:
+        productos = productos.filter(categoria=categoria)
 
     clave = get_carrito_key(request)
     carrito = request.session.get(clave, {})
@@ -168,9 +171,19 @@ def dashboard_usuario(request):
     total_carrito = sum(item["cantidad"] for item in carrito.values())
 
 
+    categorias = [
+        ('videojuego', 'Videojuego'),
+        ('consola', 'Consola'),
+        ('accesorio', 'Accesorio'),
+        ('periferico', 'Periférico'),
+        ('coleccionable', 'Coleccionable'),
+        ('otro', 'Otro'),
+    ]
     return render(request, "dashboard_usuario.html", {
         "productos": productos,
-        "total_carrito": total_carrito
+        "total_carrito": total_carrito,
+        "categorias": categorias,
+        "categoria_activa": categoria,
     })
 
 
@@ -742,41 +755,49 @@ def eliminar_comunidad(request, id):
 # =====================================
 # INVENTARIO ADMIN
 # =====================================
+
+
 @login_required
-
-
-
 def inventario_admin(request):
     productos = Producto.objects.all()
 
     query = request.GET.get("q", "")
+    categoria = request.GET.get("categoria", "")
     filtro = request.GET.get("filtro", "")
 
-    # 🔎 BUSCADOR
+    # 🔎 Buscador
     if query:
         productos = productos.filter(
             Q(nombre__icontains=query) |
             Q(descripcion__icontains=query)
         )
 
-    # ⚠️ FILTROS
+    # 🏷️ Filtro por categoría
+    if categoria:
+        productos = productos.filter(categoria=categoria)
+
+    # ⚠️ Filtros por stock
     if filtro == "stock_bajo":
         productos = productos.filter(cantidad__lt=5, cantidad__gt=0)
 
     elif filtro == "sin_stock":
         productos = productos.filter(cantidad=0)
 
-    # 📄 PAGINACIÓN
+    # 📄 Paginación
     paginator = Paginator(productos, 10)
     page = request.GET.get("page")
     productos = paginator.get_page(page)
 
+
+    
+
     return render(request, "admin/inventario.html", {
         "productos": productos,
         "query": query,
-        "filtro": filtro
+        "categoria": categoria,
+        "categorias": Producto.CATEGORIAS,
+        "filtro": filtro,
     })
-
 #======================================
 #exportar pdf de productos del admin
 #=======================================
@@ -784,7 +805,10 @@ def inventario_admin(request):
 def exportar_pdf_inventario(request):
     q = request.GET.get("q", "")
     filtro = request.GET.get("filtro", "")
+    categoria = request.GET.get("categoria", "")
     productos = Producto.objects.all()
+    if categoria:
+        productos = productos.filter(categoria=categoria)
     if q:
         productos = productos.filter(Q(nombre__icontains=q) | Q(descripcion__icontains=q))
     if filtro == "stock_bajo":
@@ -806,9 +830,13 @@ def exportar_pdf_inventario(request):
 def exportar_excel_inventario(request):
     q = request.GET.get("q", "")
     filtro = request.GET.get("filtro", "")
+    categoria = request.GET.get("categoria", "")
     productos = Producto.objects.all()
     if q:
         productos = productos.filter(Q(nombre__icontains=q) | Q(descripcion__icontains=q))
+
+    if categoria:
+       productos = productos.filter(categoria=categoria)
     if filtro == "stock_bajo":
         productos = productos.filter(cantidad__lt=5, cantidad__gt=0)
     elif filtro == "sin_stock":
@@ -818,17 +846,18 @@ def exportar_excel_inventario(request):
     ws = wb.active
     ws.title = "Inventario"
 
-    ws.append(["ID", "Producto", "Descripción", "Precio", "Stock", "Vendedor"])
+    ws.append(["ID", "Producto", "Categoria", "Descripción", "Precio", "Stock", "Vendedor"])
 
     for p in productos:
         ws.append([
-            p.id,
-            p.nombre,
-            p.descripcion,
-            float(p.precio),
-            p.cantidad,
-            p.vendedor.username
-        ])
+    p.id,
+    p.nombre,
+    p.get_categoria_display(),
+    p.descripcion,
+    float(p.precio),
+    p.cantidad,
+    p.vendedor.username
+])
 
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -1148,12 +1177,14 @@ def crear_producto(request):
             messages.error(request, "Todos los campos son obligatorios, incluyendo la imagen.")
             return redirect("crear_producto")
 
+        categoria = request.POST.get("categoria", "videojuego")
         Producto.objects.create(
             nombre=nombre,
             descripcion=descripcion,
             precio=precio,
             cantidad=cantidad,
             imagen=imagen,
+            categoria=categoria,
             vendedor=request.user
         )
 
@@ -1206,6 +1237,7 @@ def editar_producto(request, producto_id):
 
         producto.nombre = nombre
         producto.descripcion = descripcion
+        producto.categoria = request.POST.get("categoria", producto.categoria)
 
         try:
             producto.precio = float(precio)

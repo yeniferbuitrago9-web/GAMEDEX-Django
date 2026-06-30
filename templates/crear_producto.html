@@ -66,8 +66,21 @@
             </tr>
 
             <tr>
+                <td>Categoría:</td>
+                <td>
+                    <select name="categoria" required style="width:100%; padding:4px; background:#2a2a2a; color:white; border:1px solid #555; border-radius:4px;">
+                        <option value="videojuego">🎮 Videojuego</option>
+                        <option value="consola">🕹️ Consola</option>
+                        <option value="accesorio">🎧 Accesorio</option>
+                        <option value="periferico">⌨️ Periférico</option>
+                        <option value="coleccionable">⭐ Coleccionable</option>
+                        <option value="otro">📦 Otro</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
                 <td>Imagen del Producto:</td>
-                <td><input type="file" name="imagen" style="width: 100%;"></td>
+                <td><input type="file" name="imagen" accept="image/*" required style="width: 100%;"></td>
             </tr>
 
             <tr>

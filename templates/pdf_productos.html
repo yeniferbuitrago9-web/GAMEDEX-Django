@@ -1,19 +1,130 @@
-<h1>Productos Publicados</h1>
-<p>Vendedor: {{ usuario.username }}</p>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
 
-<table border="1" cellpadding="5">
-<tr>
-    <th>Nombre</th>
-    <th>Precio</th>
-    <th>Stock</th>
-</tr>
+        body{
+            font-family: Arial, sans-serif;
+            font-size:12px;
+        }
 
-{% for p in productos %}
-<tr>
-    <td>{{ p.nombre }}</td>
-    <td>${{ p.precio }}</td>
-    <td>{{ p.cantidad }}</td>
-</tr>
-{% endfor %}
+        .header{
+            text-align:center;
+            margin-bottom:20px;
+        }
+
+        .title{
+            font-size:22px;
+            font-weight:bold;
+            color:#122A54;
+        }
+
+        .subtitle{
+            font-size:14px;
+            color:#555;
+        }
+
+        .info{
+            margin-bottom:20px;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        th{
+            background:#122A54;
+            color:white;
+            padding:8px;
+        }
+
+        td{
+            padding:6px;
+            border-bottom:1px solid #ddd;
+            text-align:center;
+        }
+
+        .totales{
+            margin-top:20px;
+            text-align:right;
+        }
+
+        .footer{
+            margin-top:30px;
+            text-align:center;
+            font-size:10px;
+            color:gray;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <div class="title">GAMEDEX</div>
+    <div class="subtitle">Reporte de Productos Publicados</div>
+</div>
+
+<div class="info">
+    <strong>Vendedor:</strong> {{ usuario.username }} <br>
+    <strong>Total de productos:</strong> {{ total_productos }} <br>
+    <strong>Total de stock:</strong> {{ total_stock }}
+</div>
+
+<table>
+
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Descripción</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Garantía</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+    {% for p in productos %}
+    <tr>
+
+        <td>{{ p.id }}</td>
+
+        <td>{{ p.nombre }}</td>
+
+        <td>{{ p.get_categoria_display }}</td>
+
+        <td>{{ p.descripcion }}</td>
+
+        <td>${{ p.precio }}</td>
+
+        <td>{{ p.cantidad }}</td>
+
+        <td>{{ p.dias_garantia }} días</td>
+
+    </tr>
+    {% endfor %}
+
+    </tbody>
 
 </table>
+
+<div class="totales">
+
+    <strong>Total productos:</strong> {{ total_productos }} <br>
+
+    <strong>Total stock:</strong> {{ total_stock }}
+
+</div>
+
+<div class="footer">
+    GAMEDEX © - Sistema de gestión de productos publicados
+</div>
+
+</body>
+</html>

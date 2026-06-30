@@ -79,6 +79,7 @@
         <tr>
             <th>ID</th>
             <th>Producto</th>
+            <th>Categoria</th>
             <th>Descripción</th>
             <th>Precio</th>
             <th>Stock</th>
@@ -91,6 +92,7 @@
         <tr>
             <td>{{ p.id }}</td>
             <td>{{ p.nombre }}</td>
+            <td>{{ p.get_categoria_display }}</td>
             <td>{{ p.descripcion }}</td>
             <td>${{ p.precio }}</td>
             <td>{{ p.cantidad }}</td>

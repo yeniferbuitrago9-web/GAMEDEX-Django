@@ -124,6 +124,17 @@ body {
     <input type="text" name="q" placeholder="Buscar producto..."
            value="{{ query }}">
 
+    <select name="categoria">
+    <option value="">Todas las categorías</option>
+
+    {% for valor, nombre in categorias %}
+        <option value="{{ valor }}"
+            {% if categoria == valor %}selected{% endif %}>
+            {{ nombre }}
+        </option>
+    {% endfor %}
+</select>
+
     <select name="filtro">
         <option value="">Todos</option>
         <option value="stock_bajo" {% if filtro == "stock_bajo" %}selected{% endif %}>
@@ -159,6 +170,7 @@ body {
         <tr>
             <th>ID</th>
             <th>Producto</th>
+            <th>Categoría</th>
             <th>Descripción</th>
             <th>Precio</th>
             <th>Stock</th>
@@ -172,6 +184,7 @@ body {
         <tr>
             <td>{{ producto.id }}</td>
             <td>{{ producto.nombre }}</td>
+            <td>{{ producto.get_categoria_display }}</td>
             <td>{{ producto.descripcion }}</td>
             <td>${{ producto.precio }}</td>
 

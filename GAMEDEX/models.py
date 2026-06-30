@@ -50,8 +50,21 @@ class Perfil(models.Model):
 # PRODUCTO
 # =========================
 class Producto(models.Model):
+    CATEGORIAS = (
+        ('videojuego', 'Videojuego'),
+        ('consola', 'Consola'),
+        ('accesorio', 'Accesorio'),
+        ('periferico', 'Periférico'),
+        ('coleccionable', 'Coleccionable'),
+        ('otro', 'Otro'),
+    )
 
     vendedor = models.ForeignKey(User, on_delete=models.CASCADE)
+    categoria = models.CharField(
+        max_length=30,
+        choices=CATEGORIAS,
+        default='videojuego'
+    ) 
 
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField()
